@@ -1,0 +1,20 @@
+{
+  "desktopPersonalMode": "passed",
+  "savedPlaceAddToDay": "passed",
+  "itineraryToMap": "passed (selected marker expanded to 44px)",
+  "mapToItinerary": "passed",
+  "mobilePersonalMode": "passed at 390×844",
+  "mobileTrip": "passed at 390×844",
+  "fixture": {
+    "tripDates": [
+      "2026-10-31",
+      "2026-11-02"
+    ],
+    "days": 3,
+    "itineraryPlaces": 11,
+    "reservations": 2,
+    "collections": 3,
+    "savedPlaces": 21,
+    "addedPlacePresent": true
+  }
+}
