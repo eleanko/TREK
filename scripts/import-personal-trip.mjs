@@ -26,6 +26,19 @@ const login = await raw('/auth/login', { method: 'POST', body: JSON.stringify({ 
 if (login.mfa_required) throw new Error('This account requires MFA; use a temporary fixture account without MFA.')
 token = login.token
 
+async function collections() {
+  try {
+    return await raw('/addons/collections')
+  } catch (error) {
+    if (!String(error.message).includes('Collections addon is not enabled')) throw error
+    if (login.user?.role !== 'admin') {
+      throw new Error('Collections is disabled. Ask an administrator to enable it before importing this fixture.')
+    }
+    await raw('/admin/addons/collections', { method: 'PUT', body: JSON.stringify({ enabled: true }) })
+    return raw('/addons/collections')
+  }
+}
+
 await raw('/settings/bulk', { method: 'POST', body: JSON.stringify({ settings: {
   personal_mode: true,
   language: 'zh-TW',
@@ -98,20 +111,16 @@ for (const item of fixture.budget) if (!budget.some((row) => row.name === item.n
   await raw(`/trips/${trip.id}/budget`, { method: 'POST', body: JSON.stringify(item) })
 }
 
-try {
-  const collectionResult = await raw('/addons/collections')
-  const collections = collectionResult.collections || []
-  for (const listSpec of fixture.saved_lists) {
-    let list = collections.find((row) => row.name === listSpec.name)
-    if (!list) list = await raw('/addons/collections', { method: 'POST', body: JSON.stringify({ name: listSpec.name }) })
-    const detail = await raw(`/addons/collections/${list.id}`)
-    const names = new Set((detail.places || []).map((place) => place.name))
-    for (const place of listSpec.places) if (!names.has(place.name)) {
-      await raw('/addons/collections/places', { method: 'POST', body: JSON.stringify({ collection_id: list.id, status: 'want', ...place }) })
-    }
+const collectionResult = await collections()
+const existingCollections = collectionResult.collections || []
+for (const listSpec of fixture.saved_lists) {
+  let list = existingCollections.find((row) => row.name === listSpec.name)
+  if (!list) list = await raw('/addons/collections', { method: 'POST', body: JSON.stringify({ name: listSpec.name }) })
+  const detail = await raw(`/addons/collections/${list.id}`)
+  const names = new Set((detail.places || []).map((place) => place.name))
+  for (const place of listSpec.places) if (!names.has(place.name)) {
+    await raw('/addons/collections/places', { method: 'POST', body: JSON.stringify({ collection_id: list.id, status: 'want', ...place }) })
   }
-} catch (error) {
-  console.warn(`Saved lists were skipped: ${error.message}`)
 }
 
 console.log(`Fixture ready: ${fixture.trip.title} (trip ${trip.id})`)
