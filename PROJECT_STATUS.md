@@ -42,6 +42,7 @@ Complete Milestone 1 of the personal trip planner: simplify TREK for private use
 
 ## Known issues / risks
 
+- Branch `personal-planner-m1` is pushed, but Draft PR creation is blocked because GitHub CLI has no usable API authentication in this environment.
 - The importer has passed syntax and contract validation but has not been exercised against a live authenticated TREK instance.
 - The repository-wide shared lint/format task currently reports pre-existing Prettier debt outside this milestone.
 - New saved-place metadata is persisted and available through the API/fixture; richer editing controls for every metadata field can be added in a later increment.
@@ -64,5 +65,6 @@ Complete Milestone 1 of the personal trip planner: simplify TREK for private use
 
 ## Anything that needs user approval
 
+- Provide usable GitHub CLI authentication in the environment, or create the Draft PR from the pushed branch, so its description can be synchronized with this file.
 - Decide whether to include full saved-place metadata editing UI in Milestone 1 after reviewing the current API/fixture support.
 - Review the Draft PR before it is marked ready for review or merged.
