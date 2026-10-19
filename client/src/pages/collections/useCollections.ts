@@ -475,9 +475,9 @@ export function useCollections() {
 
   const closeCopy = useCallback(() => setCopyIds(null), [])
 
-  const handleCopyToTrip = useCallback(async (tripId: number) => {
+  const handleCopyToTrip = useCallback(async (tripId: number, dayId?: number) => {
     const ids = copyIds ?? []
-    const res = await copyToTrip(tripId, ids)
+    const res = await copyToTrip(tripId, ids, undefined, dayId)
     if (selectMode) clearSelection()
     return res
   }, [copyIds, copyToTrip, selectMode, clearSelection])

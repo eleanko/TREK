@@ -580,6 +580,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'تم إنشاء مفتاح API',
   'settings.apiKeys.modal.createdWarning': 'انسخ المفتاح الآن. يُعرض مرة واحدة فقط ولا يمكن استرجاعه لاحقًا.',
   'settings.apiKeys.modal.done': 'تم',
+  'settings.personalMode': 'الوضع الشخصي',
+  'settings.personalModeHint': 'يركّز التنقل على رحلاتك والأماكن المحفوظة. تبقى الميزات الأخرى متاحة في صفحاتها.',
+  'settings.appearance.scheme.journal': 'مذكرات السفر',
 };
 
 export default settings;

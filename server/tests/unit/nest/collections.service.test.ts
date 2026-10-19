@@ -47,7 +47,7 @@ import fs from 'fs';
 import path from 'path';
 import { createTables } from '../../../src/db/schema';
 import { runMigrations } from '../../../src/db/migrations';
-import { createUser, createTrip, createPlace, createCategory, createTag, addTripMember } from '../../helpers/factories';
+import { createUser, createTrip, createDay, createPlace, createCategory, createTag, addTripMember } from '../../helpers/factories';
 import { DatabaseService } from '../../../src/nest/database/database.service';
 import { PermissionsService } from '../../../src/nest/permissions/permissions.service';
 import { RealtimeService } from '../../../src/nest/realtime/realtime.service';
@@ -396,6 +396,36 @@ describe('copyToTrip', () => {
     const p = svc.savePlace(member.id, { collection_id: col.id, name: 'Forum' }).place!;
     const res = svc.copyToTrip(member.id, { trip_id: trip.id, place_ids: [p.id] });
     expect(res.copied).toBe(1);
+  });
+
+  it('COLLECTIONS-SVC-023a: copies to a chosen day and reuses an existing trip place', () => {
+    const user = createUser(testDb).user;
+    const trip = createTrip(testDb, user.id);
+    const day = createDay(testDb, trip.id);
+    const existing = createPlace(testDb, trip.id, { name: 'Senado Square' });
+    const col = svc.createCollection(user.id, { name: 'Saved' });
+    const saved = svc.savePlace(user.id, { collection_id: col.id, name: 'Senado Square' }).place!;
+
+    const first = svc.copyToTrip(user.id, { trip_id: trip.id, day_id: day.id, place_ids: [saved.id] });
+    expect(first).toMatchObject({ copied: 0, assigned: 1 });
+    expect(first.already_in_trip).toEqual([{ id: saved.id, name: 'Senado Square', place_id: existing.id }]);
+    expect(testDb.prepare('SELECT place_id FROM day_assignments WHERE day_id = ?').all(day.id)).toEqual([{ place_id: existing.id }]);
+
+    const second = svc.copyToTrip(user.id, { trip_id: trip.id, day_id: day.id, place_ids: [saved.id] });
+    expect(second).toMatchObject({ copied: 0, assigned: 0 });
+    expect(second.already_assigned).toEqual([{ id: saved.id, name: 'Senado Square', place_id: existing.id }]);
+    expect(testDb.prepare('SELECT COUNT(*) AS n FROM day_assignments WHERE day_id = ?').get(day.id)).toEqual({ n: 1 });
+  });
+
+  it('COLLECTIONS-SVC-023b: rejects a day from another trip', () => {
+    const user = createUser(testDb).user;
+    const trip = createTrip(testDb, user.id);
+    const other = createTrip(testDb, user.id);
+    const otherDay = createDay(testDb, other.id);
+    const col = svc.createCollection(user.id, { name: 'Saved' });
+    const saved = svc.savePlace(user.id, { collection_id: col.id, name: 'Ruins of St Paul' }).place!;
+    expect(() => svc.copyToTrip(user.id, { trip_id: trip.id, day_id: otherDay.id, place_ids: [saved.id] }))
+      .toThrow('Day does not belong to this trip');
   });
 });
 

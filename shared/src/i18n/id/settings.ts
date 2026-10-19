@@ -593,6 +593,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'Kunci API dibuat',
   'settings.apiKeys.modal.createdWarning': 'Salin kunci sekarang. Kunci hanya ditampilkan sekali dan tidak bisa diambil lagi.',
   'settings.apiKeys.modal.done': 'Selesai',
+  'settings.personalMode': 'Mode pribadi',
+  'settings.personalModeHint': 'Memusatkan navigasi pada perjalanan dan tempat tersimpan. Fitur lain tetap tersedia di halamannya.',
+  'settings.appearance.scheme.journal': 'Jurnal perjalanan',
 };
 
 export default settings;

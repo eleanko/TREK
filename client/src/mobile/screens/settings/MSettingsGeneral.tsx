@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ChevronDown, Languages, Map, Rocket } from 'lucide-react'
 import { useTranslation, SUPPORTED_LANGUAGES } from '../../../i18n'
 import { useSettingsStore } from '../../../store/settingsStore'
+import { normalizeAppearance } from '@trek/shared'
 import { useToast } from '../../../components/shared/Toast'
 import { SYMBOLS, currenciesWith } from '../../../components/Budget/BudgetPanel.constants'
 import { TRIP_TAB_IDS, TRIP_TAB_LABEL_KEYS, isTripTabId } from '../../../constants/tripTabs'
@@ -18,7 +19,7 @@ import MSetPickerSheet from './MSetPickerSheet'
 export default function MSettingsGeneral() {
   const { t } = useTranslation()
   const toast = useToast()
-  const { settings, updateSetting } = useSettingsStore()
+  const { settings, updateSetting, updateSettings } = useSettingsStore()
   const [currencyOpen, setCurrencyOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const [startTabOpen, setStartTabOpen] = useState(false)
@@ -86,6 +87,25 @@ export default function MSettingsGeneral() {
   return (
     <>
       <MSetCard title={t('settings.general.startup')} icon={Rocket}>
+        <MSetRow
+          label={t('settings.personalMode')}
+          sub={t('settings.personalModeHint')}
+          trailing={
+            <MToggle
+              checked={settings.personal_mode === true}
+              onChange={(enabled) => {
+                const appearance = normalizeAppearance(settings.appearance)
+                updateSettings({
+                  personal_mode: enabled,
+                  ...(enabled && appearance.schemeId === 'default'
+                    ? { appearance: { ...appearance, schemeId: 'journal' } }
+                    : {}),
+                }).catch((e: unknown) => toast.error(e instanceof Error ? e.message : t('common.error')))
+              }}
+              ariaLabel={t('settings.personalMode')}
+            />
+          }
+        />
         <MSetEyebrow className="mb-[6px]">{t('settings.startPage')}</MSetEyebrow>
         <MSetSegments<StartPage>
           value={startPage}

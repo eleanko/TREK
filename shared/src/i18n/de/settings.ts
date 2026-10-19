@@ -598,6 +598,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'API-Schlüssel erstellt',
   'settings.apiKeys.modal.createdWarning': 'Kopiere den Schlüssel jetzt. Er wird nur einmal angezeigt und lässt sich später nicht mehr abrufen.',
   'settings.apiKeys.modal.done': 'Fertig',
+  'settings.personalMode': 'Persönlicher Modus',
+  'settings.personalModeHint': 'Konzentriert die Navigation auf deine Reisen und gespeicherten Orte. Alle Funktionen bleiben über ihre Seiten erreichbar.',
+  'settings.appearance.scheme.journal': 'Reisetagebuch',
 };
 
 export default settings;

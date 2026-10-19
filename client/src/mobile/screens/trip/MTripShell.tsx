@@ -223,7 +223,7 @@ export default function MTripShell({
     const saved = sessionStorage.getItem(`trip-lists-subtab-${tripId}`)
     return saved === 'todo' ? 'todo' : 'packing'
   })
-  const [collabTab, setCollabTab] = useState<MTripCollabTab>('chat')
+  const [collabTab, setCollabTab] = useState<MTripCollabTab>(planner.personalMode ? 'notes' : 'chat')
   const [transportsCompact, setTransportsCompact] = useState(false)
   const [bookingsCompact, setBookingsCompact] = useState(false)
   const [addExpenseSignal, setAddExpenseSignal] = useState(0)

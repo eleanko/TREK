@@ -58,6 +58,7 @@ export function forgetServerLanguage(): void {
 // imports these same values for its fallbacks, so the store default and the UI fallback
 // can't drift apart again.
 export const DEFAULT_SETTINGS: Settings = {
+  personal_mode: false,
   map_tile_url: '',
   // Empty = the public routing hosts TREK ships with.
   routing_base_url: '',

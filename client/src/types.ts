@@ -109,6 +109,8 @@ export interface TripFile {
 export type DistanceUnit = 'metric' | 'imperial'
 
 export interface Settings {
+  /** Streamlined single-traveller navigation; this never changes permissions. */
+  personal_mode?: boolean
   map_tile_url: string
   /**
    * Base URL of a self-hosted routing engine (#1797). Empty falls back to the public

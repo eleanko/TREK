@@ -106,6 +106,15 @@
   align-items: start;
 }
 .trek-dash .page-main { min-width: 0; }
+.trek-dash .personal-sections {
+  display: flex; gap: 8px; overflow-x: auto; margin-bottom: 24px; padding-bottom: 2px;
+}
+.trek-dash .personal-sections button {
+  flex: none; padding: 9px 15px; border: 1px solid var(--line); border-radius: 999px;
+  background: var(--surface); color: var(--ink-2); box-shadow: var(--sh-xs); font-size: 13px; font-weight: 600;
+}
+.trek-dash .personal-sections button:hover,
+.trek-dash .personal-sections button.on { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--accent); }
 /* Right sidebar disabled → single centered column. */
 .trek-dash .page[data-no-sidebar="true"] { grid-template-columns: 1fr; }
 .trek-dash .page[data-no-sidebar="true"] .page-main { max-width: 1080px; margin-inline: auto; width: 100%; }

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Languages, Map, ChevronDown, Check, Rocket } from 'lucide-react'
 import { SUPPORTED_LANGUAGES, useTranslation } from '../../i18n'
 import { useSettingsStore, DEFAULT_SETTINGS } from '../../store/settingsStore'
+import { normalizeAppearance } from '@trek/shared'
 import { useToast } from '../shared/Toast'
 import CustomSelect from '../shared/CustomSelect'
 import { SYMBOLS, currenciesWith } from '../Budget/BudgetPanel.constants'
@@ -11,7 +12,7 @@ import { DEFAULT_START_PAGE, DEFAULT_START_TRIP_TAB } from '../../utils/startDes
 import type { DistanceUnit } from '../../types'
 
 export default function DisplaySettingsTab(): React.ReactElement {
-  const { settings, updateSetting } = useSettingsStore()
+  const { settings, updateSetting, updateSettings } = useSettingsStore()
   const { t } = useTranslation()
   const toast = useToast()
   const [tempUnit, setTempUnit] = useState<string>(settings.temperature_unit || DEFAULT_SETTINGS.temperature_unit)
@@ -42,6 +43,34 @@ export default function DisplaySettingsTab(): React.ReactElement {
   return (
     <>
       <Section title={t('settings.general.startup')} icon={Rocket}>
+      <div>
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            className="mt-1 h-4 w-4 accent-[var(--accent)]"
+            checked={settings.personal_mode === true}
+            onChange={async (event) => {
+              const enabled = event.target.checked
+              const appearance = normalizeAppearance(settings.appearance)
+              try {
+                await updateSettings({
+                  personal_mode: enabled,
+                  ...(enabled && appearance.schemeId === 'default'
+                    ? { appearance: { ...appearance, schemeId: 'journal' } }
+                    : {}),
+                })
+              } catch (e: unknown) {
+                toast.error(e instanceof Error ? e.message : t('common.error'))
+              }
+            }}
+          />
+          <span>
+            <span className="block text-sm font-medium text-content-secondary">{t('settings.personalMode')}</span>
+            <span className="block text-xs mt-1 text-content-faint">{t('settings.personalModeHint')}</span>
+          </span>
+        </label>
+      </div>
+
       {/* Where opening TREK lands */}
       <div>
         <label className="block text-sm font-medium mb-2 text-content-secondary">{t('settings.startPage')}</label>

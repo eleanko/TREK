@@ -10,6 +10,13 @@ import { useTranslation } from '../../../../src/i18n'
 type Props = ComponentProps<typeof MCollTripPickerSheet>
 type CopyResult = { copied: number; skipped: { id: number; name: string }[] }
 
+async function pickFirstDay(trip = 'Japan 2020'): Promise<HTMLButtonElement> {
+  fireEvent.click(await screen.findByRole('button', { name: new RegExp(trip) }))
+  const day = await screen.findByRole('button', { name: /Day 1/ }) as HTMLButtonElement
+  fireEvent.click(day)
+  return day
+}
+
 const TRIPS = [
   { id: 1, title: 'Japan 2020', start_date: '2020-03-01', end_date: '2020-03-05', cover_image: '/uploads/covers/jp.jpg' },
   { id: 2, title: 'Weekend in Prague', start_date: null, end_date: null, cover_image: null },
@@ -111,9 +118,9 @@ describe('MCollTripPickerSheet', () => {
 
   it('FE-MOB-CTRIPP-009: copying reports the count and closes the sheet', async () => {
     const { onCopy, onClose } = setup()
-    fireEvent.click(await screen.findByRole('button', { name: /Japan 2020/ }))
+    await pickFirstDay()
     await waitFor(() => expect(onClose).toHaveBeenCalled())
-    expect(onCopy).toHaveBeenCalledWith(1)
+    expect(onCopy).toHaveBeenCalledWith(1, expect.any(Number))
     expect(addToast).toHaveBeenCalledWith('Copied 1 places', 'success', undefined)
   })
 
@@ -121,7 +128,7 @@ describe('MCollTripPickerSheet', () => {
     const onCopy = vi.fn<(id: number) => Promise<CopyResult>>()
       .mockResolvedValue({ copied: 2, skipped: [{ id: 9, name: 'Louvre' }] })
     setup({ onCopy })
-    fireEvent.click(await screen.findByRole('button', { name: /Japan 2020/ }))
+    await pickFirstDay()
     await waitFor(() => expect(addToast).toHaveBeenCalledWith('Skipped 1 duplicates', 'info', undefined))
     expect(addToast).toHaveBeenCalledWith('Copied 2 places', 'success', undefined)
   })
@@ -129,7 +136,7 @@ describe('MCollTripPickerSheet', () => {
   it('FE-MOB-CTRIPP-011: a no-op copy says so rather than staying silent', async () => {
     const onCopy = vi.fn<(id: number) => Promise<CopyResult>>().mockResolvedValue({ copied: 0, skipped: [] })
     setup({ onCopy })
-    fireEvent.click(await screen.findByRole('button', { name: /Japan 2020/ }))
+    await pickFirstDay()
     await waitFor(() => expect(addToast).toHaveBeenCalledWith('Nothing to copy', 'info', undefined))
   })
 
@@ -137,7 +144,7 @@ describe('MCollTripPickerSheet', () => {
     const onCopy = vi.fn<(id: number) => Promise<CopyResult>>()
       .mockRejectedValue({ response: { data: { error: 'Trip is locked' } } })
     const { onClose } = setup({ onCopy })
-    fireEvent.click(await screen.findByRole('button', { name: /Japan 2020/ }))
+    await pickFirstDay()
     await waitFor(() => expect(addToast).toHaveBeenCalledWith('Trip is locked', 'error', undefined))
     expect(onClose).not.toHaveBeenCalled()
   })
@@ -147,12 +154,13 @@ describe('MCollTripPickerSheet', () => {
     const onCopy = vi.fn<(id: number) => Promise<CopyResult>>()
       .mockReturnValue(new Promise<CopyResult>(r => { resolve = r }))
     const { onClose } = setup({ onCopy })
-    const row = await screen.findByRole('button', { name: /Japan 2020/ })
+    fireEvent.click(await screen.findByRole('button', { name: /Japan 2020/ }))
+    const row = await screen.findByRole('button', { name: /Day 1/ })
     fireEvent.click(row)
     expect(row).toBeDisabled()
     expect(row.querySelector('.animate-spin')).not.toBeNull()
 
-    fireEvent.click(screen.getByRole('button', { name: /Weekend in Prague/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Day 2/ }))
     expect(onCopy).toHaveBeenCalledTimes(1)
 
     resolve({ copied: 1, skipped: [] })

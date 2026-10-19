@@ -592,6 +592,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'API-nyckel skapad',
   'settings.apiKeys.modal.createdWarning': 'Kopiera nyckeln nu. Den visas en gång och kan inte hämtas senare.',
   'settings.apiKeys.modal.done': 'Klar',
+  'settings.personalMode': 'Personligt läge',
+  'settings.personalModeHint': 'Fokuserar navigeringen på dina resor och sparade platser. Övriga funktioner finns kvar på sina sidor.',
+  'settings.appearance.scheme.journal': 'Resedagbok',
 };
 
 export default settings;

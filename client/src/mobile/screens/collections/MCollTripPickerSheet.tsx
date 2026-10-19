@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CalendarDays, Copy, Loader2, MapPin, Search } from 'lucide-react'
+import { CalendarDays, ChevronLeft, Copy, Loader2, MapPin, Search } from 'lucide-react'
 import type { TranslationFn } from '../../../types'
-import { tripsApi } from '../../../api/client'
+import { daysApi, tripsApi } from '../../../api/client'
 import { useTranslation } from '../../../i18n'
 import { useToast } from '../../../components/shared/Toast'
 import { getApiErrorMessage } from '../../../utils/apiError'
 import { formatDate } from '../../../utils/formatters'
 import MSheet from '../../components/MSheet'
 import { SheetHeader } from './MCollSheetKit'
+import type { Day } from '../../../types'
+import type { CopyToTripResult } from '../../../api/collections'
 
 interface TripOption {
   id: number
@@ -20,7 +22,7 @@ interface TripOption {
 interface MCollTripPickerSheetProps {
   open: boolean
   count: number
-  onCopy: (tripId: number) => Promise<{ copied: number; skipped: { id: number; name: string }[] }>
+  onCopy: (tripId: number, dayId?: number) => Promise<CopyToTripResult>
   onClose: () => void
   t: TranslationFn
 }
@@ -36,12 +38,17 @@ export default function MCollTripPickerSheet({ open, count, onCopy, onClose, t }
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [busyTripId, setBusyTripId] = useState<number | null>(null)
+  const [selectedTrip, setSelectedTrip] = useState<TripOption | null>(null)
+  const [days, setDays] = useState<Day[]>([])
+  const [daysLoading, setDaysLoading] = useState(false)
 
   useEffect(() => {
     if (!open) return
     let cancelled = false
     setLoading(true)
     setSearch('')
+    setSelectedTrip(null)
+    setDays([])
     tripsApi.list()
       .then((res: { trips?: TripOption[] }) => { if (!cancelled) setTrips(res.trips ?? []) })
       .catch(() => { if (!cancelled) setTrips([]) })
@@ -62,14 +69,26 @@ export default function MCollTripPickerSheet({ open, count, onCopy, onClose, t }
     return s || e || ''
   }
 
-  const handleCopy = async (tripId: number) => {
+  const chooseTrip = async (trip: TripOption) => {
+    setSelectedTrip(trip)
+    setDaysLoading(true)
+    try {
+      const res = await daysApi.list(trip.id) as { days?: Day[] }
+      const loaded = res.days ?? []
+      setDays(loaded)
+      if (loaded.length === 0) await handleCopy(trip.id)
+    } catch { setDays([]); await handleCopy(trip.id) } finally { setDaysLoading(false) }
+  }
+
+  const handleCopy = async (tripId: number, dayId?: number) => {
     if (busyTripId != null) return
     setBusyTripId(tripId)
     try {
-      const res = await onCopy(tripId)
-      if (res.copied > 0) toast.success(t('collections.copiedCount', { count: res.copied }))
+      const res = await onCopy(tripId, dayId)
+      const assigned = res.assigned ?? 0
+      if (res.copied > 0 || assigned > 0) toast.success(t('collections.copiedCount', { count: Math.max(res.copied, assigned) }))
       if (res.skipped.length > 0) toast.info(t('collections.skippedDuplicates', { count: res.skipped.length }))
-      if (res.copied === 0 && res.skipped.length === 0) toast.info(t('collections.copyNothing'))
+      if (res.copied === 0 && assigned === 0 && res.skipped.length === 0) toast.info(t('collections.copyNothing'))
       onClose()
     } catch (err) {
       toast.error(getApiErrorMessage(err, t('common.error')))
@@ -84,7 +103,8 @@ export default function MCollTripPickerSheet({ open, count, onCopy, onClose, t }
     <MSheet open={open} onClose={onClose} material="opaque" ariaLabel={title}>
       <SheetHeader title={title} onClose={onClose} closeLabel={t('common.close')} />
       <div className="min-h-0 flex-1 overflow-y-auto px-[18px] pb-[18px] pt-[14px]">
-        <div className="mb-2 flex h-9 items-center gap-2 rounded-[12px] border border-[color:var(--m-rowbr)] bg-[color:var(--m-sheet)] px-[13px]">
+        {selectedTrip && <button type="button" onClick={() => { setSelectedTrip(null); setDays([]) }} className="mb-2 flex items-center gap-1 font-geist text-xs font-semibold text-m-muted"><ChevronLeft size={14} />{t('common.back')}</button>}
+        {!selectedTrip && <div className="mb-2 flex h-9 items-center gap-2 rounded-[12px] border border-[color:var(--m-rowbr)] bg-[color:var(--m-sheet)] px-[13px]">
           <Search size={15} strokeWidth={2.2} className="flex-none text-m-muted" />
           <input
             value={search}
@@ -92,10 +112,21 @@ export default function MCollTripPickerSheet({ open, count, onCopy, onClose, t }
             placeholder={t('collections.copyToTripSearch')}
             className="min-w-0 flex-1 bg-transparent font-geist text-[0.78125rem] text-m-ink outline-none placeholder:text-m-faint"
           />
-        </div>
-        {loading ? (
+        </div>}
+        {loading || daysLoading ? (
           <div className="flex items-center justify-center py-10 text-m-faint">
             <Loader2 size={20} className="animate-spin" />
+          </div>
+        ) : selectedTrip ? (
+          <div>
+            {days.map((day, index) => (
+              <button key={day.id} type="button" onClick={() => handleCopy(selectedTrip.id, day.id)} disabled={busyTripId != null}
+                className="mb-2 flex w-full items-center gap-3 rounded-[14px] border border-[color:var(--m-rowbr)] bg-[color:var(--m-sheet)] px-3 py-3 text-left disabled:opacity-60">
+                <CalendarDays size={15} className="text-m-muted" />
+                <span className="min-w-0 flex-1"><span className="block truncate text-[0.8125rem] font-semibold text-m-ink">{day.title || t('roadtrip.day', { number: day.day_number ?? index + 1 })}</span>{day.date && <span className="font-geist text-[0.6875rem] text-m-muted">{formatDate(day.date, language)}</span>}</span>
+                {busyTripId === selectedTrip.id ? <Loader2 size={15} className="animate-spin" /> : <Copy size={15} className="text-m-faint" />}
+              </button>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-10 text-center font-geist text-[0.78125rem] text-m-faint">{t('collections.noTrips')}</div>
@@ -106,7 +137,7 @@ export default function MCollTripPickerSheet({ open, count, onCopy, onClose, t }
               <button
                 key={trip.id}
                 type="button"
-                onClick={() => handleCopy(trip.id)}
+                onClick={() => chooseTrip(trip)}
                 disabled={busy}
                 className="mb-2 flex w-full items-center gap-[11px] rounded-[14px] border border-[color:var(--m-rowbr)] bg-[color:var(--m-sheet)] px-3 py-[10px] text-left disabled:opacity-60"
               >

@@ -593,6 +593,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'API anahtarı oluşturuldu',
   'settings.apiKeys.modal.createdWarning': 'Anahtarı şimdi kopyala. Yalnızca bir kez gösterilir ve sonradan alınamaz.',
   'settings.apiKeys.modal.done': 'Tamam',
+  'settings.personalMode': 'Kişisel mod',
+  'settings.personalModeHint': 'Gezinmeyi seyahatlerinize ve kaydedilen yerlere odaklar. Diğer özelliklere kendi sayfalarından erişebilirsiniz.',
+  'settings.appearance.scheme.journal': 'Seyahat günlüğü',
 };
 
 export default settings;

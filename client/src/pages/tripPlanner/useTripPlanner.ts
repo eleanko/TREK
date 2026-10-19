@@ -6,6 +6,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router'
 import { useTripStore } from '../../store/tripStore'
 import { useCanDo } from '../../store/permissionsStore'
 import { useSettingsStore } from '../../store/settingsStore'
+import { isPersonalMode } from '../../utils/personalMode'
 import { dayColor } from '../../components/Roadtrip/dayColors'
 import { getCached, fetchPhoto } from '../../services/photoService'
 import { useToast } from '../../components/shared/Toast'
@@ -101,6 +102,7 @@ export function useTripPlanner() {
   const toast = useToast()
   const { t, language, locale } = useTranslation()
   const { settings } = useSettingsStore()
+  const personalMode = isPersonalMode(settings)
   const roadtripSettings = useRoadtripSettings(s => s, tripId)
   // trip-page plugins mount as tabs inside this trip planner (tripId-scoped).
   const allPlugins = usePluginStore(s => s.plugins)
@@ -187,6 +189,9 @@ export function useTripPlanner() {
     })
   }, [tripId])
   const [collabFeatures, setCollabFeatures] = useState<{ chat: boolean; notes: boolean; links: boolean; polls: boolean; whatsnext: boolean }>({ chat: true, notes: true, links: true, polls: true, whatsnext: true })
+  const visibleCollabFeatures = personalMode
+    ? { ...collabFeatures, chat: false, links: false, polls: false, whatsnext: false, notes: true }
+    : collabFeatures
   const [tripAccommodations, setTripAccommodations] = useState<Accommodation[]>([])
   const places = useMemo(
     () => (roadtripMode
@@ -227,7 +232,7 @@ export function useTripPlanner() {
   }, [])
 
 
-  const tripPagePlugins = allPlugins.filter(p => p.type === 'trip-page')
+  const tripPagePlugins = personalMode ? [] : allPlugins.filter(p => p.type === 'trip-page')
   const tripPluginIds = tripPagePlugins.map(p => p.id).join(',')
 
   // A trip-page plugin may replace core tabs while it's active (its manifest names
@@ -243,7 +248,7 @@ export function useTripPlanner() {
     ...(enabledAddons.packing ? [{ id: 'listen', label: t(TRIP_TAB_LABEL_KEYS.listen), shortLabel: t('trip.tabs.listsShort'), icon: PackageCheck }] : []),
     ...(enabledAddons.budget ? [{ id: 'finanzplan', label: t(TRIP_TAB_LABEL_KEYS.finanzplan), icon: Wallet }] : []),
     ...(enabledAddons.documents ? [{ id: 'dateien', label: t(TRIP_TAB_LABEL_KEYS.dateien), icon: FolderOpen }] : []),
-    ...(enabledAddons.collab ? [{ id: 'collab', label: t(TRIP_TAB_LABEL_KEYS.collab), icon: Users }] : []),
+    ...(enabledAddons.collab ? [{ id: 'collab', label: personalMode ? t('collab.tabs.notes') : t(TRIP_TAB_LABEL_KEYS.collab), icon: Users }] : []),
   ].filter(tab => tab.id === 'plan' || !replacedTabs.has(tab.id))
   // Positioned plugin tabs splice in ascending order so two positions stay stable;
   // the rest append, exactly as before this capability existed.
@@ -2819,13 +2824,13 @@ export function useTripPlanner() {
     trip, days, places, assignments, storedAssignments, packingItems, todoItems, categories, reservations, budgetItems, files,
     selectedDayId, isLoading, tripActions, can, canUploadFiles,
     pushUndo, undo, canUndo, lastActionLabel, handleUndo,
-    enabledAddons, collabFeatures, tripAccommodations, setTripAccommodations,
+    enabledAddons, collabFeatures: visibleCollabFeatures, tripAccommodations, setTripAccommodations,
     roadtripMode, toggleRoadtripMode, roadtripActive, roadtripFeedActive, roadtripRoutes, roadtripLineColors, roadtripMapLines, roadtripMapPlaces, collapsedRoadtripDays, toggleRoadtripDay, roadtripCorridor,
     overviewShown, toggleOverview, overviewActive, tripOverview,
     dawarichTrailShown, toggleDawarichTrail, dawarichTrail, dawarichHiddenDates, dawarichEnabled: !!enabledAddons.dawarich,
     followTrack, roadtripViaCounts,
     allowedFileTypes, tripMembers, setTripMembers, refreshMembers, loadAccommodations,
-    TRANSPORT_TYPES, TRIP_TABS, activeTab, setActiveTab, handleTabChange,
+    TRANSPORT_TYPES, TRIP_TABS, activeTab, setActiveTab, handleTabChange, personalMode,
     leftWidth, rightWidth, leftCollapsed, rightCollapsed, setLeftCollapsed, setRightCollapsed,
     leftHidden, rightHidden, toggleLeft, toggleRight, narrowPanels,
     startResizeLeft, startResizeRight,

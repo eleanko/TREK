@@ -607,6 +607,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'Το κλειδί API δημιουργήθηκε',
   'settings.apiKeys.modal.createdWarning': 'Αντίγραψε το κλειδί τώρα. Εμφανίζεται μία φορά και δεν μπορεί να ανακτηθεί αργότερα.',
   'settings.apiKeys.modal.done': 'Έτοιμο',
+  'settings.personalMode': 'Προσωπική λειτουργία',
+  'settings.personalModeHint': 'Εστιάζει την πλοήγηση στα ταξίδια και τα αποθηκευμένα μέρη σας. Οι άλλες λειτουργίες παραμένουν διαθέσιμες στις σελίδες τους.',
+  'settings.appearance.scheme.journal': 'Ταξιδιωτικό ημερολόγιο',
 };
 
 export default settings;

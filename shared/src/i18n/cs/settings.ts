@@ -587,6 +587,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'Klíč API vytvořen',
   'settings.apiKeys.modal.createdWarning': 'Zkopíruj klíč hned teď. Zobrazí se jen jednou a později ho už nelze získat.',
   'settings.apiKeys.modal.done': 'Hotovo',
+  'settings.personalMode': 'Osobní režim',
+  'settings.personalModeHint': 'Zaměří navigaci na vaše cesty a uložená místa. Ostatní funkce zůstávají dostupné na svých stránkách.',
+  'settings.appearance.scheme.journal': 'Cestovní deník',
 };
 
 export default settings;

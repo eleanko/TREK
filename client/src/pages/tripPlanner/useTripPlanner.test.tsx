@@ -292,6 +292,22 @@ describe('useTripPlanner — bootstrap', () => {
     expect(result.current.collabFeatures.notes).toBe(false)
   })
 
+  it('FE-TP-HOOK-111: personal mode presents collaboration as private notes', async () => {
+    setSettings({ personal_mode: true })
+    vi.mocked(addonsApi.enabled).mockResolvedValue({
+      addons: [{ id: 'collab' }],
+      collabFeatures: { chat: true, notes: false, links: true, polls: true, whatsnext: true },
+    })
+    seedTrip()
+
+    const { result } = await renderPlanner()
+
+    await waitFor(() => expect(result.current.enabledAddons.collab).toBe(true))
+    expect(result.current.personalMode).toBe(true)
+    expect(result.current.TRIP_TABS.find(tab => tab.id === 'collab')?.label).toBe('Notes')
+    expect(result.current.collabFeatures).toMatchObject({ chat: false, notes: true, links: false, polls: false, whatsnext: false })
+  })
+
   it('FE-TP-HOOK-007: the app config supplies the allowed upload types', async () => {
     vi.mocked(authApi.getAppConfig).mockResolvedValue({ allowed_file_types: 'pdf,png' })
     seedTrip()

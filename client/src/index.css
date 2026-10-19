@@ -965,6 +965,26 @@ input[type="number"], input[type="time"], input[type="date"], input[type="dateti
   --accent-hover: #7c3aed; --accent-subtle: rgba(139, 92, 246, 0.18);
 }
 
+/* Journal — warm paper surfaces, taupe borders, and a quiet sage accent. */
+:root[data-scheme="journal"] {
+  --accent: #75836d; --accent-text: #ffffff; --accent-on: #5f6d58;
+  --accent-hover: #64735d; --accent-subtle: #edf0e9;
+  --bg-primary: #f6f1e8; --bg-secondary: #eee7db; --bg-card: #fcf9f3;
+  --bg-elevated: #fffdf8; --bg-hover: #ebe4d8; --bg-selected: #e2ded2;
+  --text-primary: #3d3933; --text-secondary: #625c53; --text-muted: #7a7267;
+  --text-faint: #9b9184; --border-primary: #d7cec0; --border-secondary: #e5ddd1;
+  --border-faint: rgba(91, 80, 66, 0.14); --sidebar-bg: #f0e9dd;
+}
+.dark[data-scheme="journal"] {
+  --accent: #a8b79f; --accent-text: #222820; --accent-on: #bdcbb5;
+  --accent-hover: #bac8b2; --accent-subtle: rgba(168, 183, 159, 0.18);
+  --bg-primary: #211f1b; --bg-secondary: #292620; --bg-card: #302c25;
+  --bg-elevated: #373229; --bg-hover: #403a30; --bg-selected: #494237;
+  --text-primary: #f2ece2; --text-secondary: #d8cfc1; --text-muted: #b8ad9e;
+  --text-faint: #958a7c; --border-primary: #514a3f; --border-secondary: #403a31;
+  --border-faint: rgba(242, 236, 226, 0.12); --sidebar-bg: #292620;
+}
+
 /* High-Contrast — raises neutral text/border contrast and solidifies surfaces,
    directly answering #951 / #1025 (grey-on-grey, transparency hurting legibility). */
 :root[data-scheme="highContrast"] {

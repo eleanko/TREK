@@ -595,6 +595,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'Chiave API creata',
   'settings.apiKeys.modal.createdWarning': 'Copia la chiave adesso. Viene mostrata una sola volta e non può essere recuperata in seguito.',
   'settings.apiKeys.modal.done': 'Fatto',
+  'settings.personalMode': 'Modalità personale',
+  'settings.personalModeHint': 'Concentra la navigazione sui tuoi viaggi e luoghi salvati. Le altre funzioni restano disponibili nelle rispettive pagine.',
+  'settings.appearance.scheme.journal': 'Diario di viaggio',
 };
 
 export default settings;

@@ -598,6 +598,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'Clau API creada',
   'settings.apiKeys.modal.createdWarning': 'Copia la clau ara. Només es mostra un cop i no es pot recuperar després.',
   'settings.apiKeys.modal.done': 'Fet',
+  'settings.personalMode': 'Mode personal',
+  'settings.personalModeHint': 'Centra la navegació en els teus viatges i llocs desats. Les altres funcions continuen disponibles a les seves pàgines.',
+  'settings.appearance.scheme.journal': 'Diari de viatge',
 };
 
 export default settings;
