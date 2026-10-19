@@ -597,6 +597,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'API-kulcs létrehozva',
   'settings.apiKeys.modal.createdWarning': 'Másold ki a kulcsot most. Csak egyszer jelenik meg, később nem kérhető le.',
   'settings.apiKeys.modal.done': 'Kész',
+  'settings.personalMode': 'Személyes mód',
+  'settings.personalModeHint': 'Az utazásokra és a mentett helyekre összpontosítja a navigációt. A többi funkció saját oldalán továbbra is elérhető.',
+  'settings.appearance.scheme.journal': 'Útinapló',
 };
 
 export default settings;

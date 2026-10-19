@@ -19,6 +19,7 @@ import type {
   CollectionGpxReadResult,
   CollectionPlaceUpdateRequest,
   CollectionCopyToTripRequest,
+  CollectionCopyToTripResult,
   CollectionInviteRequest,
   CollectionRole,
   CollectionInviteActionRequest,
@@ -44,10 +45,7 @@ export interface MembershipQuery {
   lng?: number
 }
 
-export interface CopyToTripResult {
-  copied: number
-  skipped: { id: number; name: string }[]
-}
+export type CopyToTripResult = CollectionCopyToTripResult
 
 /**
  * Axios calls for the Collections addon (/api/addons/collections). Mirrors the

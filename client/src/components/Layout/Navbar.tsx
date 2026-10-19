@@ -11,6 +11,7 @@ import type { LucideIcon } from 'lucide-react'
 import InAppNotificationBell from './InAppNotificationBell.tsx'
 import { resolvePluginIcon } from '../shared/PluginIcon'
 import { visibleManagedNavItems } from '../../managed'
+import { isPersonalMode, PERSONAL_GLOBAL_ADDONS } from '../../utils/personalMode'
 
 const ADDON_ICONS: Record<string, LucideIcon> = { CalendarDays, Briefcase, Globe, Compass, Bookmark }
 
@@ -40,6 +41,7 @@ export default function Navbar({ tripTitle, tripId, onBack, showBack, onShare }:
   const [userMenuOpen, setUserMenuOpen] = useState<boolean>(false)
   const [scrolled, setScrolled] = useState<boolean>(false)
   const darkMode = settings.dark_mode
+  const personalMode = isPersonalMode(settings)
   const dark = darkMode === true || darkMode === 'dark' || (darkMode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)
 
   useEffect(() => {
@@ -54,8 +56,8 @@ export default function Navbar({ tripTitle, tripId, onBack, showBack, onShare }:
   }, [])
 
   // Only show 'global' type addons in the navbar — 'integration' addons have no dedicated page
-  const globalAddons = allAddons.filter((a: Addon) => a.type === 'global' && a.enabled)
-  const pagePlugins = usePluginStore(s => s.plugins).filter(p => p.type === 'page')
+  const globalAddons = allAddons.filter((a: Addon) => a.type === 'global' && a.enabled && (!personalMode || PERSONAL_GLOBAL_ADDONS.has(a.id)))
+  const pagePlugins = usePluginStore(s => s.plugins).filter(p => p.type === 'page' && !personalMode)
 
   useEffect(() => {
     if (user) loadAddons()
@@ -169,7 +171,7 @@ export default function Navbar({ tripTitle, tripId, onBack, showBack, onShare }:
             ...globalAddons.map(a => ({ id: a.id, path: `/${a.id}`, label: getAddonName(a), Icon: ADDON_ICONS[a.icon] || CalendarDays })),
             ...pagePlugins.map(p => ({ id: `plugin:${p.id}`, path: `/plugins/${p.id}`, label: p.name, Icon: resolvePluginIcon(p.icon) })),
             // Empty in this repository — see client/src/managed.
-            ...visibleManagedNavItems(user?.role === 'admin').map(m => ({ id: `managed:${m.id}`, path: m.path, label: m.label, Icon: m.Icon }))
+            ...visibleManagedNavItems(user?.role === 'admin' && !personalMode).map(m => ({ id: `managed:${m.id}`, path: m.path, label: m.label, Icon: m.Icon }))
           ].map(tab => {
             const isActive = location.pathname === tab.path
             return (

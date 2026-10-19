@@ -5285,6 +5285,18 @@ function runMigrations(db: Database.Database): void {
         END
       `);
     },
+
+    /* Personal saved-place metadata: all columns are additive and nullable or
+       defaulted, so existing libraries keep their current meaning. */
+    () => {
+      const rows = db.prepare("SELECT name FROM pragma_table_info('collection_places')").all() as { name: string }[];
+      const columns = new Set(rows.map((row) => row.name));
+      if (!columns.has('area')) db.exec('ALTER TABLE collection_places ADD COLUMN area TEXT');
+      if (!columns.has('favorite')) db.exec('ALTER TABLE collection_places ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0');
+      if (!columns.has('priority')) db.exec('ALTER TABLE collection_places ADD COLUMN priority INTEGER NOT NULL DEFAULT 0');
+      if (!columns.has('opening_hours')) db.exec('ALTER TABLE collection_places ADD COLUMN opening_hours TEXT');
+      if (!columns.has('recommended_dishes')) db.exec('ALTER TABLE collection_places ADD COLUMN recommended_dishes TEXT');
+    },
   ];
 
   if (currentVersion < migrations.length) {

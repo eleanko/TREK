@@ -566,6 +566,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'API キーを作成しました',
   'settings.apiKeys.modal.createdWarning': '今すぐキーをコピーしてください。表示は一度きりで、あとから取得はできません。',
   'settings.apiKeys.modal.done': '完了',
+  'settings.personalMode': 'パーソナルモード',
+  'settings.personalModeHint': 'ナビゲーションを旅行と保存済みスポットに絞ります。ほかの機能も元のページから利用できます。',
+  'settings.appearance.scheme.journal': 'トラベルノート',
 };
 
 export default settings;

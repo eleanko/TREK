@@ -63,7 +63,7 @@ interface CollectionState {
   ratePlace: (placeId: number, rating: number | null) => Promise<void>
   deletePlace: (placeId: number) => Promise<void>
   deleteMany: (ids: number[]) => Promise<void>
-  copyToTrip: (tripId: number, placeIds: number[], force?: boolean) => Promise<{ copied: number; skipped: { id: number; name: string }[] }>
+  copyToTrip: (tripId: number, placeIds: number[], force?: boolean, dayId?: number) => ReturnType<typeof collectionsApi.copyToTrip>
   moveToList: (placeIds: number[], targetId: number) => Promise<void>
   duplicateToList: (placeIds: number[], targetId: number) => Promise<void>
 
@@ -307,8 +307,8 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
     await get().loadAll()
   },
 
-  copyToTrip: async (tripId: number, placeIds: number[], force?: boolean) => {
-    const res = await collectionsApi.copyToTrip({ trip_id: tripId, place_ids: placeIds, force })
+  copyToTrip: async (tripId: number, placeIds: number[], force?: boolean, dayId?: number) => {
+    const res = await collectionsApi.copyToTrip({ trip_id: tripId, place_ids: placeIds, force, ...(dayId == null ? {} : { day_id: dayId }) })
     return res
   },
 

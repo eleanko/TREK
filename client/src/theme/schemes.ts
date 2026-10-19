@@ -20,6 +20,7 @@ export const APPEARANCE_SCHEMES: SchemeSwatch[] = [
   { id: 'rose', swatch: { light: '#e11d48', dark: '#f43f5e' } },
   { id: 'amber', swatch: { light: '#d97706', dark: '#f59e0b' } },
   { id: 'violet', swatch: { light: '#7c3aed', dark: '#8b5cf6' } },
+  { id: 'journal', swatch: { light: '#75836d', dark: '#a8b79f' } },
 ]
 
 /** Sensible starting points when a user first opens the custom-accent picker. */

@@ -595,6 +595,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'Klucz API utworzony',
   'settings.apiKeys.modal.createdWarning': 'Skopiuj klucz teraz. Jest pokazywany tylko raz i później nie można go odzyskać.',
   'settings.apiKeys.modal.done': 'Gotowe',
+  'settings.personalMode': 'Tryb osobisty',
+  'settings.personalModeHint': 'Skupia nawigację na podróżach i zapisanych miejscach. Pozostałe funkcje są nadal dostępne na swoich stronach.',
+  'settings.appearance.scheme.journal': 'Dziennik podróży',
 };
 
 export default settings;

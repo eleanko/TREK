@@ -586,6 +586,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'API key created',
   'settings.apiKeys.modal.createdWarning': 'Copy the key now. It is shown once and cannot be retrieved later.',
   'settings.apiKeys.modal.done': 'Done',
+  'settings.personalMode': 'Personal mode',
+  'settings.personalModeHint': 'Focus navigation on your trips and saved places. All features remain available from their direct pages.',
+  'settings.appearance.scheme.journal': 'Journal',
 };
 
 export default settings;

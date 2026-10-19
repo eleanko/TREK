@@ -53,6 +53,11 @@ export const collectionPlaceSchema = z.object({
   price: z.number().nullable().optional(),
   currency: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
+  area: z.string().nullable().optional(),
+  favorite: z.boolean().optional(),
+  priority: z.number().int().min(0).max(3).optional(),
+  opening_hours: z.string().nullable().optional(),
+  recommended_dishes: z.string().nullable().optional(),
   // Deliberately open on the way out, pinned on the way in (see the save/update
   // request schemas below): rows written before the request-side check existed
   // still have to round-trip.
@@ -153,6 +158,11 @@ export const collectionSavePlaceRequestSchema = z.object({
   price: z.number().nullable().optional(),
   currency: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
+  area: z.string().nullable().optional(),
+  favorite: z.boolean().optional(),
+  priority: z.number().int().min(0).max(3).optional(),
+  opening_hours: z.string().nullable().optional(),
+  recommended_dishes: z.string().nullable().optional(),
   image_url: placeImageUrlSchema.nullable().optional(),
   google_place_id: z.string().nullable().optional(),
   google_ftid: z.string().nullable().optional(),
@@ -188,6 +198,11 @@ export const collectionPlaceUpdateRequestSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
+  area: z.string().nullable().optional(),
+  favorite: z.boolean().optional(),
+  priority: z.number().int().min(0).max(3).optional(),
+  opening_hours: z.string().nullable().optional(),
+  recommended_dishes: z.string().nullable().optional(),
   // Editable coordinates so a place added by GPS can be corrected later (#1435).
   lat: z.number().nullable().optional(),
   lng: z.number().nullable().optional(),
@@ -248,10 +263,21 @@ export type CollectionDeleteManyRequest = z.infer<typeof collectionDeleteManyReq
 /** Copy one or many saved places INTO a trip (dedup precheck on server). */
 export const collectionCopyToTripRequestSchema = z.object({
   trip_id: z.number(),
+  /** Optional itinerary day to assign each copied or already-existing place to. */
+  day_id: z.number().optional(),
   place_ids: z.array(z.number()).min(1),
   force: z.boolean().optional(),
 });
 export type CollectionCopyToTripRequest = z.infer<typeof collectionCopyToTripRequestSchema>;
+
+export const collectionCopyToTripResultSchema = z.object({
+  copied: z.number(),
+  assigned: z.number().optional(),
+  skipped: z.array(z.object({ id: z.number(), name: z.string() })),
+  already_in_trip: z.array(z.object({ id: z.number(), name: z.string(), place_id: z.number() })).optional(),
+  already_assigned: z.array(z.object({ id: z.number(), name: z.string(), place_id: z.number() })).optional(),
+});
+export type CollectionCopyToTripResult = z.infer<typeof collectionCopyToTripResultSchema>;
 
 // Fusion invitations. user_id is NUMERIC ONLY — the UI always sends an id from availableUsers.
 export const collectionInviteRequestSchema = z.object({

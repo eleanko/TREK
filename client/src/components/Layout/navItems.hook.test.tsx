@@ -1,10 +1,11 @@
-// FE-W4NAVH-001 to FE-W4NAVH-005
+// FE-W4NAVH-001 to FE-W4NAVH-006
 import { describe, it, expect, beforeEach } from 'vitest'
 import { CalendarDays, Globe, LayoutGrid } from 'lucide-react'
 import { renderHook } from '@testing-library/react'
 import { TranslationProvider } from '../../i18n/TranslationContext'
 import { useAddonStore } from '../../store/addonStore'
 import { usePluginStore } from '../../store/pluginStore'
+import { useSettingsStore } from '../../store/settingsStore'
 import { useNavItems } from './navItems'
 
 function wrapper({ children }: { children: React.ReactNode }) {
@@ -16,6 +17,7 @@ const render = () => renderHook(() => useNavItems(), { wrapper })
 beforeEach(() => {
   useAddonStore.setState({ addons: [] })
   usePluginStore.setState({ plugins: [] })
+  useSettingsStore.setState({ settings: { ...useSettingsStore.getState().settings, personal_mode: false } })
 })
 
 describe('useNavItems', () => {
@@ -75,5 +77,20 @@ describe('useNavItems', () => {
     rerender()
 
     expect(result.current).toBe(first)
+  })
+
+  it('FE-W4NAVH-006: personal mode keeps Collections and hides other global pages', () => {
+    useSettingsStore.setState({ settings: { ...useSettingsStore.getState().settings, personal_mode: true } })
+    useAddonStore.setState({
+      addons: [
+        { id: 'collections', name: 'Saved', icon: 'Bookmark', type: 'global', enabled: true },
+        { id: 'atlas', name: 'Atlas', icon: 'Map', type: 'global', enabled: true },
+      ] as never,
+    })
+    usePluginStore.setState({ plugins: [{ id: 'extra', name: 'Extra', type: 'page' }] as never })
+
+    const { result } = render()
+
+    expect(result.current.map(i => i.id)).toEqual(['dashboard', 'collections'])
   })
 })

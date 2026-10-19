@@ -583,6 +583,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'API 키를 만들었습니다',
   'settings.apiKeys.modal.createdWarning': '지금 키를 복사하세요. 한 번만 표시되며 나중에 다시 확인할 수 없습니다.',
   'settings.apiKeys.modal.done': '완료',
+  'settings.personalMode': '개인 모드',
+  'settings.personalModeHint': '탐색 메뉴를 여행과 저장한 장소에 집중합니다. 다른 기능도 기존 페이지에서 계속 사용할 수 있습니다.',
+  'settings.appearance.scheme.journal': '여행 일지',
 };
 
 export default settings;

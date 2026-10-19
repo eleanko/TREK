@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Search, MapPin, Loader2, Copy, CalendarDays } from 'lucide-react'
+import { Search, MapPin, Loader2, Copy, CalendarDays, ChevronLeft } from 'lucide-react'
 import Modal from '../shared/Modal'
 import { useToast } from '../shared/Toast'
-import { tripsApi } from '../../api/client'
+import { daysApi, tripsApi } from '../../api/client'
 import { getApiErrorMessage } from '../../utils/apiError'
 import { formatDate } from '../../utils/formatters'
 import { useTranslation } from '../../i18n'
-import type { TranslationFn } from '../../types'
+import type { Day, TranslationFn } from '../../types'
+import type { CopyToTripResult } from '../../api/collections'
 
 interface TripOption {
   id: number
@@ -22,7 +23,7 @@ interface CopyToTripModalProps {
   /** The collection place ids to copy. */
   placeIds: number[]
   /** Delegates to collectionStore.copyToTrip; returns the server reconcile result. */
-  onCopy: (tripId: number) => Promise<{ copied: number; skipped: { id: number; name: string }[] }>
+  onCopy: (tripId: number, dayId?: number) => Promise<CopyToTripResult>
   t: TranslationFn
 }
 
@@ -39,12 +40,17 @@ export default function CopyToTripModal({ isOpen, onClose, placeIds, onCopy, t }
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [busyTripId, setBusyTripId] = useState<number | null>(null)
+  const [selectedTrip, setSelectedTrip] = useState<TripOption | null>(null)
+  const [days, setDays] = useState<Day[]>([])
+  const [daysLoading, setDaysLoading] = useState(false)
 
   useEffect(() => {
     if (!isOpen) return
     let cancelled = false
     setLoading(true)
     setSearch('')
+    setSelectedTrip(null)
+    setDays([])
     tripsApi.list()
       .then((res: { trips?: TripOption[] }) => { if (!cancelled) setTrips(res.trips ?? []) })
       .catch(() => { if (!cancelled) setTrips([]) })
@@ -67,18 +73,35 @@ export default function CopyToTripModal({ isOpen, onClose, placeIds, onCopy, t }
 
   if (!isOpen) return null
 
-  const handleCopy = async (tripId: number) => {
+  const chooseTrip = async (trip: TripOption) => {
+    setSelectedTrip(trip)
+    setDaysLoading(true)
+    try {
+      const res = await daysApi.list(trip.id) as { days?: Day[] }
+      const loaded = res.days ?? []
+      setDays(loaded)
+      if (loaded.length === 0) await handleCopy(trip.id)
+    } catch {
+      setDays([])
+      await handleCopy(trip.id)
+    } finally {
+      setDaysLoading(false)
+    }
+  }
+
+  const handleCopy = async (tripId: number, dayId?: number) => {
     if (busyTripId != null || placeIds.length === 0) return
     setBusyTripId(tripId)
     try {
-      const res = await onCopy(tripId)
-      if (res.copied > 0) {
-        toast.success(t('collections.copiedCount', { count: res.copied }))
+      const res = await onCopy(tripId, dayId)
+      const assigned = res.assigned ?? 0
+      if (res.copied > 0 || assigned > 0) {
+        toast.success(t('collections.copiedCount', { count: Math.max(res.copied, assigned) }))
       }
       if (res.skipped.length > 0) {
         toast.info(t('collections.skippedDuplicates', { count: res.skipped.length }))
       }
-      if (res.copied === 0 && res.skipped.length === 0) {
+      if (res.copied === 0 && assigned === 0 && res.skipped.length === 0) {
         toast.info(t('collections.copyNothing'))
       }
       onClose()
@@ -97,7 +120,12 @@ export default function CopyToTripModal({ isOpen, onClose, placeIds, onCopy, t }
       size="sm"
     >
       <div className="flex flex-col gap-3">
-        <div className="relative">
+        {selectedTrip && (
+          <button type="button" onClick={() => { setSelectedTrip(null); setDays([]) }} className="flex items-center gap-1 text-xs font-medium text-content-muted hover:text-content">
+            <ChevronLeft size={14} /> {t('common.back')}
+          </button>
+        )}
+        {!selectedTrip && <div className="relative">
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-content-faint" />
           <input
             autoFocus
@@ -106,10 +134,24 @@ export default function CopyToTripModal({ isOpen, onClose, placeIds, onCopy, t }
             placeholder={t('collections.copyToTripSearch')}
             className="w-full pl-8 pr-3 py-2 rounded-lg border border-edge bg-surface-input text-content text-[13px] outline-none focus:border-accent"
           />
-        </div>
-        {loading ? (
+        </div>}
+        {loading || daysLoading ? (
           <div className="flex items-center justify-center py-10 text-content-faint">
             <Loader2 size={20} className="animate-spin" />
+          </div>
+        ) : selectedTrip ? (
+          <div className="flex flex-col gap-1 max-h-[50vh] overflow-y-auto">
+            {days.map((day, index) => (
+              <button key={day.id} type="button" onClick={() => handleCopy(selectedTrip.id, day.id)} disabled={busyTripId != null}
+                className="flex items-center gap-3 px-3 py-3 rounded-xl border border-edge bg-surface-card text-left hover:bg-surface-hover disabled:opacity-60">
+                <CalendarDays size={16} className="text-content-faint" />
+                <span className="flex-1 min-w-0">
+                  <span className="block text-[13px] font-medium text-content truncate">{day.title || t('roadtrip.day', { number: day.day_number ?? index + 1 })}</span>
+                  {day.date && <span className="text-[11.5px] text-content-faint">{formatDate(day.date, language)}</span>}
+                </span>
+                {busyTripId === selectedTrip.id ? <Loader2 size={15} className="animate-spin" /> : <Copy size={15} className="text-content-faint" />}
+              </button>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <p className="text-center text-[13px] text-content-faint py-10">{t('collections.noTrips')}</p>
@@ -121,7 +163,7 @@ export default function CopyToTripModal({ isOpen, onClose, placeIds, onCopy, t }
                 <button
                   key={trip.id}
                   type="button"
-                  onClick={() => handleCopy(trip.id)}
+                  onClick={() => chooseTrip(trip)}
                   disabled={busy}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-edge bg-surface-card text-left hover:bg-surface-hover transition-colors disabled:opacity-60"
                 >

@@ -25,6 +25,7 @@ export const APPEARANCE_PRESET_SCHEMES = [
   'rose', // warm rose/coral
   'amber', // warm gold/sunrise
   'violet', // purple/plum
+  'journal', // warm cream, taupe, and muted sage for a personal travel journal
 ] as const;
 
 /** All selectable scheme ids, including the user-defined custom accent. */

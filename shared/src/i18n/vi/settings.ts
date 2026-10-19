@@ -597,6 +597,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'Đã tạo khóa API',
   'settings.apiKeys.modal.createdWarning': 'Hãy sao chép khóa ngay. Khóa chỉ hiện một lần và không thể lấy lại sau này.',
   'settings.apiKeys.modal.done': 'Xong',
+  'settings.personalMode': 'Chế độ cá nhân',
+  'settings.personalModeHint': 'Tập trung điều hướng vào chuyến đi và địa điểm đã lưu. Các tính năng khác vẫn có trên trang riêng.',
+  'settings.appearance.scheme.journal': 'Nhật ký hành trình',
 };
 
 export default settings;

@@ -556,6 +556,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'API 密钥已创建',
   'settings.apiKeys.modal.createdWarning': '请立即复制密钥。它只显示一次，之后无法再次获取。',
   'settings.apiKeys.modal.done': '完成',
+  'settings.personalMode': '个人模式',
+  'settings.personalModeHint': '导航将聚焦于你的行程和收藏地点；其他功能仍可从原有页面打开。',
+  'settings.appearance.scheme.journal': '旅行手帐',
 };
 
 export default settings;

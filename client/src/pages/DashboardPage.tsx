@@ -33,17 +33,18 @@ import { convertDistance, getDistanceUnitLabel } from '../utils/units'
 import { useSettingsStore } from '../store/settingsStore'
 import { useAddonStore } from '../store/addonStore'
 import { normalizeAppearance } from '@trek/shared'
+import { isPersonalMode } from '../utils/personalMode'
 import '../styles/dashboard.css'
 
 const GRADIENTS = [
-  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-  'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-  'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-  'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-  'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
-  'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-  'linear-gradient(135deg, #96fbc4 0%, #f9f586 100%)',
+  'linear-gradient(135deg, #8f9a86 0%, #5f6d58 100%)',
+  'linear-gradient(135deg, #b59b87 0%, #806a5c 100%)',
+  'linear-gradient(135deg, #9aa7a0 0%, #65766e 100%)',
+  'linear-gradient(135deg, #b6aa91 0%, #80745e 100%)',
+  'linear-gradient(135deg, #a88f8a 0%, #745f5a 100%)',
+  'linear-gradient(135deg, #a49baa 0%, #706677 100%)',
+  'linear-gradient(135deg, #b8a68f 0%, #7f6d58 100%)',
+  'linear-gradient(135deg, #9ba68d 0%, #67725d 100%)',
 ]
 function tripGradient(id: number): string { return GRADIENTS[id % GRADIENTS.length] }
 
@@ -125,6 +126,7 @@ function DashboardPageDesktop(): React.ReactElement {
   // Dashboard widget visibility (from the appearance config). Phones never reach this
   // component — DashboardPage routes them to MDashboard — so only the desktop set applies.
   const appearanceCfg = useSettingsStore(s => s.settings.appearance)
+  const personalMode = useSettingsStore(s => isPersonalMode(s.settings))
   const dashCfg = normalizeAppearance(appearanceCfg).dashboard
   const sideWidgets = dashCfg.desktop
   const showCurrency = sideWidgets.currency
@@ -136,7 +138,7 @@ function DashboardPageDesktop(): React.ReactElement {
   // Desktop has a master toggle for the whole right column; off → centered layout.
   // Only true dashboard widgets belong here — hero mounts on the boarding pass, and
   // place-detail/day-detail widgets live inside the planner panels, not the sidebar.
-  const widgetPlugins = usePluginStore(s => s.plugins).filter(p => p.type === 'widget' && p.slot !== 'hero' && p.slot !== 'place-detail' && p.slot !== 'day-detail' && p.slot !== 'reservation-detail')
+  const widgetPlugins = usePluginStore(s => s.plugins).filter(p => !personalMode && p.type === 'widget' && p.slot !== 'hero' && p.slot !== 'place-detail' && p.slot !== 'day-detail' && p.slot !== 'reservation-detail')
   const sidebarVisible = dashCfg.desktop.sidebar && (showCurrency || showCollections || showTimezones || showUpcoming || widgetPlugins.length > 0)
 
   // Plugin-contributed badges on the trip cards (tripCardProvider hook). One fetch for
@@ -165,6 +167,14 @@ function DashboardPageDesktop(): React.ReactElement {
                 </button>
               </div>
             )}
+            {personalMode && (
+              <nav className="personal-sections" aria-label={t('dashboard.title')}>
+                <button type="button" className={tripFilter === 'planned' ? 'on' : ''} onClick={() => setTripFilter('planned')}>{t('nav.myTrips')}</button>
+                <button type="button" onClick={() => navigate('/collections')}>{t('collections.title')}</button>
+                <button type="button" onClick={() => document.getElementById('dashboard-upcoming')?.scrollIntoView({ behavior: 'smooth' })}>{t('dashboard.upcoming.title')}</button>
+                <button type="button" className={tripFilter === 'archive' ? 'on' : ''} onClick={() => setTripFilter('archive')}>{t('dashboard.archived')}</button>
+              </nav>
+            )}
             {/* The hero and the cards below stand in for themselves while the trips load.
                 Without them the page rendered its finished empty state: no hero, no
                 cards, and a stats row reading zero, which reads as "your trips are
@@ -183,7 +193,7 @@ function DashboardPageDesktop(): React.ReactElement {
               />
             )}
 
-            <AtlasStats stats={stats} />
+            {!personalMode && <AtlasStats stats={stats} />}
 
             <section>
               <div className="sec-head">
@@ -265,7 +275,7 @@ function DashboardPageDesktop(): React.ReactElement {
               {showCurrency && <CurrencyTool />}
               {showCollections && <CollectionsWidget onOpen={() => navigate('/collections')} />}
               {showTimezones && <TimezoneTool locale={locale} />}
-              {showUpcoming && <UpcomingTool items={upcoming} locale={locale} onOpen={(tripId) => navigate(`/trips/${tripId}`)} />}
+              {showUpcoming && <div id="dashboard-upcoming"><UpcomingTool items={upcoming} locale={locale} onOpen={(tripId) => navigate(`/trips/${tripId}`)} /></div>}
               <PluginWidgets plugins={widgetPlugins} tripId={spotlight ? String(spotlight.id) : null} />
             </aside>
           )}

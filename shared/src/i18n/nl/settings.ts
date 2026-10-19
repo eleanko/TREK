@@ -596,6 +596,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'API-sleutel aangemaakt',
   'settings.apiKeys.modal.createdWarning': 'Kopieer de sleutel nu. Hij wordt één keer getoond en kan later niet worden opgehaald.',
   'settings.apiKeys.modal.done': 'Klaar',
+  'settings.personalMode': 'Persoonlijke modus',
+  'settings.personalModeHint': 'Richt de navigatie op je reizen en opgeslagen plaatsen. Andere functies blijven via hun eigen pagina beschikbaar.',
+  'settings.appearance.scheme.journal': 'Reisdagboek',
 };
 
 export default settings;

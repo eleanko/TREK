@@ -604,6 +604,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'Clé API créée',
   'settings.apiKeys.modal.createdWarning': 'Copiez la clé maintenant. Elle n\'est affichée qu\'une seule fois et ne peut pas être récupérée ensuite.',
   'settings.apiKeys.modal.done': 'Terminé',
+  'settings.personalMode': 'Mode personnel',
+  'settings.personalModeHint': 'Centre la navigation sur vos voyages et lieux enregistrés. Les autres fonctions restent accessibles depuis leurs pages.',
+  'settings.appearance.scheme.journal': 'Carnet de voyage',
 };
 
 export default settings;

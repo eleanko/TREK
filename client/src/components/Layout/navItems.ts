@@ -4,6 +4,8 @@ import { useTranslation } from '../../i18n'
 import { useAddonStore } from '../../store/addonStore'
 import { usePluginStore } from '../../store/pluginStore'
 import { resolvePluginIcon } from '../shared/PluginIcon'
+import { useSettingsStore } from '../../store/settingsStore'
+import { isPersonalMode, PERSONAL_GLOBAL_ADDONS } from '../../utils/personalMode'
 
 /**
  * The canonical main-navigation item model, shared by the mobile dock
@@ -79,14 +81,15 @@ export function useNavItems(): NavItemDef[] {
   const { t } = useTranslation()
   const addons = useAddonStore((s) => s.addons)
   const plugins = usePluginStore((s) => s.plugins)
+  const personalMode = useSettingsStore((s) => isPersonalMode(s.settings))
   return useMemo(
     () =>
       buildNavItems(
-        addons.filter((a) => a.type === 'global' && a.enabled),
-        plugins.filter((p) => p.type === 'page'),
+        addons.filter((a) => a.type === 'global' && a.enabled && (!personalMode || PERSONAL_GLOBAL_ADDONS.has(a.id))),
+        personalMode ? [] : plugins.filter((p) => p.type === 'page'),
         t,
       ),
-    [addons, plugins, t],
+    [addons, personalMode, plugins, t],
   )
 }
 

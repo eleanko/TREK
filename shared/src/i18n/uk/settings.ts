@@ -596,6 +596,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'Ключ API створено',
   'settings.apiKeys.modal.createdWarning': 'Скопіюйте ключ зараз. Він показується один раз, пізніше його не отримати.',
   'settings.apiKeys.modal.done': 'Готово',
+  'settings.personalMode': 'Особистий режим',
+  'settings.personalModeHint': 'Зосереджує навігацію на подорожах і збережених місцях. Інші функції доступні на своїх сторінках.',
+  'settings.appearance.scheme.journal': 'Щоденник подорожей',
 };
 
 export default settings;

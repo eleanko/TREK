@@ -560,6 +560,9 @@ const settings: TranslationStrings = {
   'settings.apiKeys.modal.createdTitle': 'API 金鑰已建立',
   'settings.apiKeys.modal.createdWarning': '請立即複製金鑰。它只會顯示一次，之後無法再取得。',
   'settings.apiKeys.modal.done': '完成',
+  'settings.personalMode': '個人模式',
+  'settings.personalModeHint': '導覽會聚焦於你的行程與收藏地點；其他功能仍可從原有頁面開啟。',
+  'settings.appearance.scheme.journal': '旅行手帳',
 };
 
 export default settings;

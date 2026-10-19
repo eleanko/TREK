@@ -1,0 +1,87 @@
+{
+  "trip": {
+    "title": "Macau × Zhuhai 2026",
+    "description": "三天兩夜的澳門與珠海個人旅行：以美食、真實體驗與順路移動為主。",
+    "start_date": "2026-10-31",
+    "end_date": "2026-11-02",
+    "currency": "HKD",
+    "day_count": 3
+  },
+  "places": [
+    { "name": "Dino Burger — 氹仔泉悅店", "address": "澳門氹仔泉悅花園一帶", "day": 1, "notes": "演唱會前按抵達時間用餐。" },
+    { "name": "The Londoner Arena", "address": "澳門路氹連貫公路澳門倫敦人", "lat": 22.1437, "lng": 113.5685, "day": 1, "notes": "PLAVE World Tour [KEEP IT MANIC]；18:00 開演。" },
+    { "name": "橫琴口岸", "address": "廣東省珠海市香洲區橫琴口岸", "lat": 22.1365, "lng": 113.5489, "day": 1, "notes": "演唱會後由倫敦人前往橫琴口岸，預留散場與通關時間。" },
+    { "name": "De Castle 德堡花園酒店（珠海情侶路海濱泳場店）", "address": "景和街71號, 香洲區, 珠海", "day": 1, "notes": "橫琴口岸過關後前往酒店。", "accommodation": { "start_day": 1, "end_day": 3, "check_in": "22:30", "check_out": "11:00" } },
+    { "name": "Floury", "address": "珠海市香洲區", "day": 2, "notes": "早餐候選；按當日營業時間與位置決定。" },
+    { "name": "景山公園", "address": "廣東省珠海市香洲區海濱北路", "lat": 22.2766, "lng": 113.5764, "day": 2, "notes": "纜車上山、滑道落山；先確認天氣與即時開放狀況。" },
+    { "name": "情侶路", "address": "廣東省珠海市香洲區情侶中路", "lat": 22.2628, "lng": 113.5908, "day": 2, "notes": "沿海散步與在地體驗，不以打卡拍照為主。" },
+    { "name": "香山埠海鮮大排檔", "address": "珠海市香洲區", "day": 2, "notes": "海鮮晚餐候選；按景山公園與情侶路的實際動線決定。" },
+    { "name": "GOODNEWS / 喜聞", "address": "珠海市香洲區", "day": 3, "notes": "離開珠海前的美食補完候選。" },
+    { "name": "拱北口岸", "address": "廣東省珠海市香洲區拱北口岸", "lat": 22.2187, "lng": 113.5519, "day": 3, "notes": "視回程安排選擇回澳門或直接銜接香港交通。" }
+  ],
+  "reservations": [
+    {
+      "title": "PLAVE World Tour [KEEP IT MANIC]",
+      "type": "event",
+      "reservation_time": "2026-10-31T18:00:00+08:00",
+      "location": "The Londoner Arena, Macao",
+      "notes": "Upper；Section 308；Row D；Seats 20–21",
+      "place_name": "The Londoner Arena"
+    }
+  ],
+  "saved_lists": [
+    {
+      "name": "澳門想吃",
+      "places": [
+        { "name": "Dino Burger — 氹仔泉悅店", "area": "氹仔", "address": "澳門氹仔泉悅花園一帶", "favorite": true, "priority": 3, "opening_hours": "出發前向店家確認" },
+        { "name": "篤篤小食區", "area": "大堂巷／板樟堂", "address": "澳門大堂巷／板樟堂一帶", "priority": 3, "recommended_dishes": "咖喱魚蛋／牛雜", "opening_hours": "出發前向店家確認" },
+        { "name": "彩香園", "area": "澳門", "priority": 2, "recommended_dishes": "嚤囉雞飯", "opening_hours": "出發前向店家確認" },
+        { "name": "新金樂麵家", "area": "澳門", "priority": 2, "recommended_dishes": "牛肉米", "opening_hours": "出發前向店家確認" },
+        { "name": "世記咖啡外賣店", "area": "澳門", "priority": 2, "recommended_dishes": "豬扒包", "opening_hours": "出發前向店家確認" },
+        { "name": "華記咖哩麵食", "area": "澳門", "favorite": true, "priority": 3, "recommended_dishes": "咖哩牛腩炒河", "opening_hours": "出發前向店家確認" },
+        { "name": "李家鮮味廚房", "area": "澳門", "priority": 2, "recommended_dishes": "花甲骨煲", "opening_hours": "出發前向店家確認" },
+        { "name": "金美食", "area": "澳門", "priority": 2, "recommended_dishes": "豬油撈粗", "opening_hours": "出發前向店家確認" },
+        { "name": "COTIZ", "area": "澳門", "priority": 2, "recommended_dishes": "牛奶雪糕", "opening_hours": "出發前向店家確認" },
+        { "name": "新潮咖啡美食", "area": "澳門", "priority": 2, "recommended_dishes": "黑白底咖哩和牛飯", "opening_hours": "出發前向店家確認" },
+        { "name": "肥仔記", "area": "澳門", "priority": 2, "recommended_dishes": "牛腩薯仔雞翼麵", "opening_hours": "出發前向店家確認" }
+      ]
+    },
+    {
+      "name": "珠海想吃",
+      "places": [
+        { "name": "GOODNEWS / 喜聞", "area": "珠海香洲", "favorite": true, "priority": 3, "opening_hours": "出發前向店家確認" },
+        { "name": "楓記生蠔", "area": "珠海", "priority": 3, "recommended_dishes": "生蠔", "opening_hours": "出發前向店家確認" },
+        { "name": "濠軒閣", "area": "珠海", "priority": 2, "opening_hours": "出發前向店家確認" },
+        { "name": "香山埠海鮮大排檔", "area": "珠海香洲", "favorite": true, "priority": 3, "recommended_dishes": "時令海鮮", "opening_hours": "出發前向店家確認" },
+        { "name": "肘記鱔魚麵", "area": "珠海", "priority": 2, "recommended_dishes": "鱔魚麵", "opening_hours": "出發前向店家確認" },
+        { "name": "Floury", "area": "珠海香洲", "priority": 2, "opening_hours": "出發前向店家確認" },
+        { "name": "浔昵烤肉铺", "area": "珠海", "priority": 2, "recommended_dishes": "烤肉", "opening_hours": "出發前向店家確認" }
+      ]
+    },
+    {
+      "name": "交通與備忘",
+      "places": [
+        { "name": "The Londoner Arena", "area": "路氹", "address": "澳門路氹連貫公路澳門倫敦人", "favorite": true, "priority": 3, "notes": "10/31 18:00 PLAVE 演唱會" },
+        { "name": "橫琴口岸", "area": "橫琴", "address": "廣東省珠海市香洲區橫琴口岸", "priority": 3, "notes": "演唱會散場後主要過關路線" },
+        { "name": "De Castle 德堡花園酒店（珠海情侶路海濱泳場店）", "area": "珠海香洲", "address": "景和街71號, 香洲區, 珠海", "priority": 3 }
+      ]
+    }
+  ],
+  "todos": [
+    { "name": "再次確認 PLAVE 票券與座位資料", "category": "預訂", "priority": 3, "due_date": "2026-10-29" },
+    { "name": "確認倫敦人到橫琴口岸的散場交通", "category": "交通", "priority": 3, "due_date": "2026-10-29" },
+    { "name": "準備港澳與中國內地所需通行文件", "category": "出發前", "priority": 3, "due_date": "2026-10-30" },
+    { "name": "下載澳門及珠海離線地圖", "category": "出發前", "priority": 2, "due_date": "2026-10-30" }
+  ],
+  "packing": [
+    { "name": "通行文件", "category": "證件", "quantity": 1 },
+    { "name": "PLAVE 電子票券備份", "category": "證件", "quantity": 1 },
+    { "name": "行動電源", "category": "電子用品", "quantity": 1 },
+    { "name": "輕便雨具", "category": "衣物", "quantity": 1 }
+  ],
+  "budget": [
+    { "name": "De Castle 住宿", "category": "accommodation", "total_price": 900, "currency": "CNY", "expense_date": "2026-10-31" },
+    { "name": "澳珠跨境與市內交通", "category": "transport", "total_price": 400, "currency": "HKD", "expense_date": "2026-10-31" },
+    { "name": "三日餐飲預算", "category": "food", "total_price": 1500, "currency": "HKD", "expense_date": "2026-10-31" }
+  ]
+}

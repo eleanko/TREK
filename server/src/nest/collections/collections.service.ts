@@ -42,6 +42,7 @@ import type {
   CollectionSavePlaceRequest,
   CollectionSaveResult,
   CollectionCopyToTripRequest,
+  CollectionCopyToTripResult,
   CollectionPlaceUpdateRequest,
   CollectionStatus,
   CollectionLabel,
@@ -260,6 +261,7 @@ export class CollectionsService {
       const ratings = ratingsByPlace[r.id] || [];
       return {
         ...rest,
+        favorite: (r as unknown as { favorite?: number }).favorite === 1,
         links: parseLinks((r as { links?: unknown }).links),
         category: r.category_id
           ? { id: r.category_id, name: category_name ?? '', color: category_color ?? null, icon: category_icon ?? null }
@@ -828,8 +830,9 @@ export class CollectionsService {
     INSERT INTO collection_places (
       collection_id, owner_id, saved_by, name, description, lat, lng, address,
       category_id, price, currency, notes, image_url, google_place_id, google_ftid,
-      osm_id, website, phone, status, source_trip_id, source_place_id, links
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      osm_id, website, phone, status, source_trip_id, source_place_id, links,
+      area, favorite, priority, opening_hours, recommended_dishes
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `,
         body.collection_id, ownerId, userId,
         body.name, body.description ?? null, body.lat ?? null, body.lng ?? null, body.address ?? null,
@@ -838,6 +841,8 @@ export class CollectionsService {
         body.osm_id ?? null, body.website ?? null, body.phone ?? null,
         body.status ?? 'idea', body.source_trip_id ?? null, body.source_place_id ?? null,
         serializeLinks(body.links),
+        body.area ?? null, body.favorite ? 1 : 0, body.priority ?? 0,
+        body.opening_hours ?? null, body.recommended_dishes ?? null,
       );
 
       const id = Number(result.lastInsertRowid);
@@ -1007,6 +1012,11 @@ export class CollectionsService {
     if (body.name !== undefined) { updates.push('name = ?'); params.push(body.name); }
     if (body.description !== undefined) { updates.push('description = ?'); params.push(body.description ?? null); }
     if (body.notes !== undefined) { updates.push('notes = ?'); params.push(body.notes ?? null); }
+    if (body.area !== undefined) { updates.push('area = ?'); params.push(body.area ?? null); }
+    if (body.favorite !== undefined) { updates.push('favorite = ?'); params.push(body.favorite ? 1 : 0); }
+    if (body.priority !== undefined) { updates.push('priority = ?'); params.push(body.priority); }
+    if (body.opening_hours !== undefined) { updates.push('opening_hours = ?'); params.push(body.opening_hours ?? null); }
+    if (body.recommended_dishes !== undefined) { updates.push('recommended_dishes = ?'); params.push(body.recommended_dishes ?? null); }
     if (body.lat !== undefined) { updates.push('lat = ?'); params.push(body.lat ?? null); }
     if (body.lng !== undefined) { updates.push('lng = ?'); params.push(body.lng ?? null); }
     if (body.address !== undefined) { updates.push('address = ?'); params.push(body.address ?? null); }
@@ -1232,12 +1242,16 @@ export class CollectionsService {
   // Copy to trip
   // -------------------------------------------------------------------------
 
-  copyToTrip(userId: number, body: CollectionCopyToTripRequest): { copied: number; skipped: { id: number; name: string }[] } {
+  copyToTrip(userId: number, body: CollectionCopyToTripRequest): CollectionCopyToTripResult {
     const trip = this.db.canAccessTrip(body.trip_id, userId);
     if (!trip) httpError(404, 'Trip not found');
     const role = this.db.get<{ role: string }>('SELECT role FROM users WHERE id = ?', userId)?.role ?? 'user';
     if (!this.permissions.checkPermission('place_edit', role, trip.user_id, userId, trip.user_id !== userId)) {
       httpError(403, 'Not allowed to edit this trip');
+    }
+    if (body.day_id != null) {
+      const day = this.db.get<{ id: number }>('SELECT id FROM days WHERE id = ? AND trip_id = ?', body.day_id, body.trip_id);
+      if (!day) httpError(400, 'Day does not belong to this trip');
     }
 
     // Votes only travel for users who are members of THIS trip (owner + members),
@@ -1267,9 +1281,10 @@ export class CollectionsService {
     // Trip dedup set — same helpers the importers use, so a place renamed in the
     // trip is still recognised by its provider id when it is copied again (#1550).
     const existing = this.db.all<{
+      id: number;
       name: string | null; lat: number | null; lng: number | null;
       google_place_id: string | null; google_ftid: string | null; osm_id: string | null;
-    }>('SELECT name, lat, lng, google_place_id, google_ftid, osm_id FROM places WHERE trip_id = ?', body.trip_id);
+    }>('SELECT id, name, lat, lng, google_place_id, google_ftid, osm_id FROM places WHERE trip_id = ?', body.trip_id);
     const dedup: DedupSet = { names: new Set(), coords: [], externalIds: new Set() };
     for (const r of existing) {
       for (const id of externalIdsOf(r)) dedup.externalIds.add(id);
@@ -1284,9 +1299,38 @@ export class CollectionsService {
   `);
     const insertTag = this.db.prepare('INSERT OR IGNORE INTO place_tags (place_id, tag_id) VALUES (?, ?)');
     const insertRating = this.db.prepare('INSERT OR IGNORE INTO place_ratings (place_id, user_id, rating) VALUES (?, ?, ?)');
+    const insertAssignment = this.db.prepare('INSERT INTO day_assignments (day_id, place_id, order_index) VALUES (?, ?, ?)');
+
+    const findExisting = (candidate: PlaceMatchCandidate) => {
+      for (const strategy of placeMatchStrategies(candidate)) {
+        const match = existing.find((place) => {
+          if (strategy.by === 'externalId') return externalIdsOf(place).includes(strategy.id);
+          if (strategy.by === 'name') return place.name?.trim().toLowerCase() === strategy.name;
+          return place.name == null && place.lat != null && place.lng != null
+            && Math.abs(place.lat - strategy.lat) <= strategy.tolerance
+            && Math.abs(place.lng - strategy.lng) <= strategy.tolerance;
+        });
+        if (match) return match;
+      }
+      return undefined;
+    };
+
+    const assignToDay = (placeId: number): 'assigned' | 'already_assigned' | null => {
+      if (body.day_id == null) return null;
+      const present = this.db.get('SELECT 1 FROM day_assignments WHERE day_id = ? AND place_id = ? LIMIT 1', body.day_id, placeId);
+      if (present) return 'already_assigned';
+      const order = this.db.get<{ next_order: number }>(
+        'SELECT COALESCE(MAX(order_index), -1) + 1 AS next_order FROM day_assignments WHERE day_id = ?', body.day_id,
+      )?.next_order ?? 0;
+      insertAssignment.run(body.day_id, placeId, order);
+      return 'assigned';
+    };
 
     let copied = 0;
+    let assigned = 0;
     const skipped: { id: number; name: string }[] = [];
+    const already_in_trip: { id: number; name: string; place_id: number }[] = [];
+    const already_assigned: { id: number; name: string; place_id: number }[] = [];
     // The whole copy is one logical write — atomic since the post-fold quirk pass.
     this.db.transaction(() => {
       for (const s of sources) {
@@ -1295,6 +1339,13 @@ export class CollectionsService {
           google_place_id: s.google_place_id, google_ftid: s.google_ftid, osm_id: s.osm_id,
         }, dedup)) {
           skipped.push({ id: s.id, name: s.name });
+          const match = findExisting(s);
+          if (match) {
+            const outcome = assignToDay(match.id);
+            if (outcome === 'assigned') assigned++;
+            if (outcome === 'already_assigned') already_assigned.push({ id: s.id, name: s.name, place_id: match.id });
+            else already_in_trip.push({ id: s.id, name: s.name, place_id: match.id });
+          }
           continue;
         }
         const res = insertPlace.run(
@@ -1311,10 +1362,12 @@ export class CollectionsService {
         for (const v of votes) if (tripMemberIds.has(v.user_id)) insertRating.run(newPlaceId, v.user_id, v.rating);
 
         trackInsertedInDedupSet(s, dedup);
+        existing.push({ id: newPlaceId, name: s.name, lat: s.lat, lng: s.lng, google_place_id: s.google_place_id, google_ftid: s.google_ftid, osm_id: s.osm_id });
+        if (assignToDay(newPlaceId) === 'assigned') assigned++;
         copied++;
       }
     });
-    return { copied, skipped };
+    return { copied, assigned, skipped, already_in_trip, already_assigned };
   }
 
   // -------------------------------------------------------------------------

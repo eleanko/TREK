@@ -26,6 +26,8 @@ import MUserMenu from './MUserMenu'
 import { useMobileDashOrder, useMobileDashVisibility, MobileDashWidget } from './MDashWidgets'
 import MNewTripSheet from './MNewTripSheet'
 import type { MobileDashToken } from '@trek/shared'
+import { useSettingsStore } from '../../../store/settingsStore'
+import { isPersonalMode } from '../../../utils/personalMode'
 
 // Localized short date for the pills; the year only shows when it isn't the
 // current one (same rule as the desktop cards).
@@ -68,12 +70,13 @@ export default function MDashboard(): React.ReactElement {
   const fetchUnreadCount = useInAppNotificationStore(s => s.fetchUnreadCount)
   const [menuOpen, setMenuOpen] = useState(false)
   const [subOpen, setSubOpen] = useState(false)
+  const personalMode = useSettingsStore(s => isPersonalMode(s.settings))
 
   // Plugin dashboard widgets + trip-card badges, mirroring the desktop page:
   // same slot filter (only true dashboard widgets), one badge fetch for all
   // visible cards, gated on any plugin being active. Fail-safe like desktop.
-  const widgetPlugins = usePluginStore(s => s.plugins).filter(p => p.type === 'widget' && p.slot !== 'hero' && p.slot !== 'place-detail' && p.slot !== 'day-detail' && p.slot !== 'reservation-detail')
-  const anyPluginActive = usePluginStore(s => s.plugins).length > 0
+  const widgetPlugins = usePluginStore(s => s.plugins).filter(p => !personalMode && p.type === 'widget' && p.slot !== 'hero' && p.slot !== 'place-detail' && p.slot !== 'day-detail' && p.slot !== 'reservation-detail')
+  const anyPluginActive = usePluginStore(s => s.plugins).length > 0 && !personalMode
   const badgesFor = useTripCardBadges(gridTrips.map(trip => trip.id), anyPluginActive)
 
   // Mobile-only dashboard arrangement: the featured trip stays on top, then the
@@ -269,6 +272,15 @@ export default function MDashboard(): React.ReactElement {
               {t('dashboard.retry')}
             </button>
           </div>
+        )}
+
+        {personalMode && (
+          <nav className="m-hscroll mb-3 flex gap-2" aria-label={t('dashboard.title')}>
+            <button type="button" onClick={() => setTripFilter('planned')} className={`flex-none rounded-full px-4 py-2 text-xs font-semibold ${tripFilter === 'planned' ? 'bg-m-act text-m-actfg' : 'border border-[color:var(--m-gbr)] bg-[color:var(--m-glass)] text-m-ink'}`}>{t('nav.myTrips')}</button>
+            <button type="button" onClick={() => navigate('/collections')} className="flex-none rounded-full border border-[color:var(--m-gbr)] bg-[color:var(--m-glass)] px-4 py-2 text-xs font-semibold text-m-ink">{t('collections.title')}</button>
+            <button type="button" onClick={() => setTripFilter('planned')} className="flex-none rounded-full border border-[color:var(--m-gbr)] bg-[color:var(--m-glass)] px-4 py-2 text-xs font-semibold text-m-ink">{t('dashboard.upcoming.title')}</button>
+            <button type="button" onClick={() => setTripFilter('archive')} className={`flex-none rounded-full px-4 py-2 text-xs font-semibold ${tripFilter === 'archive' ? 'bg-m-act text-m-actfg' : 'border border-[color:var(--m-gbr)] bg-[color:var(--m-glass)] text-m-ink'}`}>{t('dashboard.archived')}</button>
+          </nav>
         )}
 
         {spotlight && (

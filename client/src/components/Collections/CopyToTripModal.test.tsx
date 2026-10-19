@@ -10,6 +10,13 @@ import CopyToTripModal from './CopyToTripModal';
 type ModalProps = Omit<React.ComponentProps<typeof CopyToTripModal>, 't'>;
 type CopyResult = { copied: number; skipped: { id: number; name: string }[] };
 
+async function pickFirstDay(trip = 'Rome 2026'): Promise<HTMLButtonElement> {
+  fireEvent.click(await screen.findByRole('button', { name: new RegExp(trip) }));
+  const day = await screen.findByRole('button', { name: /Day 1/ }) as HTMLButtonElement;
+  fireEvent.click(day);
+  return day;
+}
+
 function Harness(props: ModalProps): React.ReactElement {
   const { t } = useTranslation();
   return <CopyToTripModal {...props} t={t} />;
@@ -159,10 +166,10 @@ describe('CopyToTripModal', () => {
     const onCopy = vi.fn(async (): Promise<CopyResult> => ({ copied: 2, skipped: [] }));
     const props = renderModal({ onCopy });
 
-    fireEvent.click(await screen.findByText('Rome 2026'));
+    await pickFirstDay();
 
     await waitFor(() => expect(props.onClose).toHaveBeenCalled());
-    expect(onCopy).toHaveBeenCalledWith(1);
+    expect(onCopy).toHaveBeenCalledWith(1, expect.any(Number));
     expect(addToast).toHaveBeenCalledWith('Copied 2 places', 'success', undefined);
   });
 
@@ -170,7 +177,7 @@ describe('CopyToTripModal', () => {
     const onCopy = vi.fn(async (): Promise<CopyResult> => ({ copied: 1, skipped: [{ id: 9, name: 'Colosseum' }] }));
     renderModal({ onCopy });
 
-    fireEvent.click(await screen.findByText('Rome 2026'));
+    await pickFirstDay();
     await waitFor(() => expect(addToast).toHaveBeenCalledWith('Skipped 1 duplicates', 'info', undefined));
     expect(addToast).toHaveBeenCalledWith('Copied 1 places', 'success', undefined);
   });
@@ -179,7 +186,7 @@ describe('CopyToTripModal', () => {
     const onCopy = vi.fn(async (): Promise<CopyResult> => ({ copied: 0, skipped: [] }));
     renderModal({ onCopy });
 
-    fireEvent.click(await screen.findByText('Rome 2026'));
+    await pickFirstDay();
     await waitFor(() => expect(addToast).toHaveBeenCalledWith('Nothing to copy', 'info', undefined));
     expect(addToast).toHaveBeenCalledTimes(1);
   });
@@ -188,7 +195,7 @@ describe('CopyToTripModal', () => {
     const onCopy = vi.fn((): Promise<CopyResult> => Promise.reject({ response: { data: { error: 'Trip is locked' } } }));
     const props = renderModal({ onCopy });
 
-    fireEvent.click(await screen.findByText('Rome 2026'));
+    await pickFirstDay();
     await waitFor(() => expect(addToast).toHaveBeenCalledWith('Trip is locked', 'error', undefined));
     expect(props.onClose).not.toHaveBeenCalled();
   });
@@ -198,10 +205,12 @@ describe('CopyToTripModal', () => {
     const onCopy = vi.fn(() => new Promise<CopyResult>(r => { resolve = r; }));
     const props = renderModal({ onCopy });
 
-    fireEvent.click(await screen.findByText('Rome 2026'));
-    fireEvent.click(screen.getByText('Tokyo'));
+    fireEvent.click(await screen.findByRole('button', { name: /Rome 2026/ }));
+    const day = await screen.findByRole('button', { name: /Day 1/ });
+    fireEvent.click(day);
+    fireEvent.click(screen.getByRole('button', { name: /Day 2/ }));
     expect(onCopy).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole('button', { name: /Rome 2026/ })).toBeDisabled();
+    expect(day).toBeDisabled();
 
     resolve({ copied: 1, skipped: [] });
     await waitFor(() => expect(props.onClose).toHaveBeenCalled());
@@ -211,7 +220,7 @@ describe('CopyToTripModal', () => {
     const user = userEvent.setup();
     const props = renderModal({ placeIds: [] });
 
-    fireEvent.click(await screen.findByText('Rome 2026'));
+    await pickFirstDay();
     expect(props.onCopy).not.toHaveBeenCalled();
 
     await user.keyboard('{Escape}');

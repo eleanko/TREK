@@ -435,6 +435,7 @@ function schemeFallback(id: string): string {
     rose: 'Rose',
     amber: 'Amber',
     violet: 'Violet',
+    journal: 'Journal',
   }
   return map[id] || id
 }
