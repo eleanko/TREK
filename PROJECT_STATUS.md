@@ -63,7 +63,8 @@ Complete Milestone 1 of the personal trip planner: simplify TREK for private use
 
 ## Known issues / risks
 
-- The cloud review environment blocks the public OpenStreetMap routing endpoint and OpenFreeMap/OpenStreetMap tile hosts. The map canvas therefore appears without its external base tiles in the screenshot, while local marker rendering and map/itinerary selection still work. This is an environment egress limitation rather than an observed application regression.
+- The cloud review environment blocks public map/routing, weather, and exchange-rate endpoints. The map canvas therefore appears without its external base tiles and the dashboard cannot fetch live exchange rates, while local marker rendering and map/itinerary selection still work. These are environment egress limitations rather than observed application regressions.
+- The browser console reports an existing React `key` warning from `DayPlanSidebar` while rendering the itinerary. It did not affect the reviewed selection, copy, or mobile flows, but should be cleaned up separately.
 - The repository-wide shared lint/format task currently reports pre-existing Prettier debt outside this milestone.
 - New saved-place metadata is persisted and available through the API/fixture; richer editing controls for every metadata field can be added in a later increment.
 - Personal Mode is opt-in to preserve upstream-compatible default behavior. The fixture importer enables it for the importing user.
