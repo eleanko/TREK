@@ -1,3 +1,4 @@
+import { useSettingsStore } from '../../store/settingsStore'
 // FE-COMP-COLDETAIL-001 to FE-COMP-COLDETAIL-048
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '../../../tests/helpers/render';
@@ -688,3 +689,85 @@ describe('CollectionPlaceDetail: cover controls', () => {
     expect(controls).toHaveClass('ms-auto');
   });
 });
+
+// Personal Mode metadata uses the same save contract on desktop and mobile.
+describe('Personal Mode metadata', () => {
+  beforeEach(() => {
+    resetAllStores()
+    useSettingsStore.setState(s => ({ settings: { ...s.settings, personal_mode: true } }))
+  })
+
+  it('saves all metadata and normalizes cleared text to null', async () => {
+    const { onSave } = renderDetail()
+    fireEvent.click(screen.getByRole('button', { name: 'Edit', exact: true }))
+    fireEvent.change(screen.getByLabelText('Area'), { target: { value: '  Macau  ' } })
+    fireEvent.click(screen.getByLabelText('Favorite'))
+    fireEvent.change(screen.getByLabelText('Priority'), { target: { value: '3' } })
+    fireEvent.change(screen.getByLabelText('Opening hours'), { target: { value: '10:00–20:00\nClosed Monday' } })
+    fireEvent.change(screen.getByLabelText('Recommended dishes'), { target: { value: '  ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      area: 'Macau', favorite: true, priority: 3, opening_hours: '10:00–20:00\nClosed Monday', recommended_dishes: null,
+    })))
+  })
+
+  it('discards edits when canceled and restores persisted metadata', () => {
+    renderDetail()
+    fireEvent.click(screen.getByRole('button', { name: 'Edit', exact: true }))
+    fireEvent.change(screen.getByLabelText('Area'), { target: { value: 'Discard me' } })
+    fireEvent.click(screen.getByLabelText('Favorite'))
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel', exact: true }))
+    fireEvent.click(screen.getByRole('button', { name: 'Edit', exact: true }))
+    expect(screen.getByLabelText('Area')).toHaveValue('')
+    expect(screen.getByLabelText('Favorite')).not.toBeChecked()
+  })
+
+  it('shows persisted metadata to viewers without exposing editing controls', () => {
+    renderDetail({ place: { ...place, area: 'Taipa', favorite: true, priority: 3, opening_hours: '10:00–20:00', recommended_dishes: 'Egg tart' }, canEdit: false })
+    expect(screen.getByText('Taipa')).toBeInTheDocument()
+    expect(screen.getByText('Egg tart')).toBeInTheDocument()
+    expect(screen.getByText('10:00–20:00')).toBeInTheDocument()
+    expect(screen.getByText('High')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Edit', exact: true })).not.toBeInTheDocument()
+  })
+})
+
+describe('Personal Mode metadata edge cases', () => {
+  beforeEach(() => {
+    resetAllStores()
+    useSettingsStore.setState(s => ({ settings: { ...s.settings, personal_mode: true } }))
+  })
+
+  it('clears persisted text, favorite and priority explicitly', async () => {
+    const { onSave } = renderDetail({ place: { ...place, area: 'Taipa', favorite: true, priority: 3, opening_hours: '10:00', recommended_dishes: 'Egg tart' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Edit', exact: true }))
+    for (const label of ['Area', 'Opening hours', 'Recommended dishes']) {
+      fireEvent.change(screen.getByLabelText(label), { target: { value: '' } })
+    }
+    fireEvent.click(screen.getByLabelText('Favorite'))
+    fireEvent.change(screen.getByLabelText('Priority'), { target: { value: '0' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      area: null, favorite: false, priority: 0, opening_hours: null, recommended_dishes: null,
+    })))
+  })
+
+  it('keeps metadata editable when saving fails', async () => {
+    const onSave = vi.fn().mockRejectedValue(new Error('Save failed'))
+    renderDetail({ onSave })
+    fireEvent.click(screen.getByRole('button', { name: 'Edit', exact: true }))
+    fireEvent.change(screen.getByLabelText('Area'), { target: { value: 'Keep this draft' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }))
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(screen.getByLabelText('Area')).toHaveValue('Keep this draft')
+  })
+
+  it('labels metadata in Traditional Chinese', async () => {
+    useSettingsStore.setState(s => ({ settings: { ...s.settings, language: 'zh-TW' } }))
+    renderDetail()
+    fireEvent.click(await screen.findByRole('button', { name: '編輯', exact: true }))
+    for (const label of ['地區', '最愛', '優先順序', '營業時間', '推薦菜式']) {
+      expect(screen.getByLabelText(label)).toBeInTheDocument()
+    }
+  })
+})
