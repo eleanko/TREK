@@ -1,6 +1,15 @@
 import type { TranslationStrings } from '../types';
 
 const collection: TranslationStrings = {
+  'collections.metadata.area': 'Area',
+  'collections.metadata.favorite': 'Favorite',
+  'collections.metadata.priority': 'Priority',
+  'collections.metadata.opening_hours': 'Opening hours',
+  'collections.metadata.recommended_dishes': 'Recommended dishes',
+  'collections.metadata.priority.none': 'None',
+  'collections.metadata.priority.low': 'Low',
+  'collections.metadata.priority.medium': 'Medium',
+  'collections.metadata.priority.high': 'High',
   'collections.saveNToList': 'Save {count} to a list',
   'collections.addedNToList': 'Saved {count} to {name}',
   'collections.noOwnLists': 'You have no lists yet',

@@ -1,10 +1,13 @@
+import PlaceMetadata from './PlaceMetadata'
+import usePlaceMetadata from './usePlaceMetadata'
+import { useSettingsStore } from '../../store/settingsStore'
 import React, { useEffect, useRef, useState } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
 import { markdownLinkComponents } from '../shared/markdownLink'
 import { X, Pencil, Copy, Trash2, MapPin, Link2, Plus, ExternalLink, Check, Tag, Tags, Camera, Loader2, Navigation } from 'lucide-react'
-import type { CollectionPlace, CollectionStatus, CollectionLink, CollectionLabel } from '@trek/shared'
+import type { CollectionPlace, CollectionStatus, CollectionLink, CollectionPlaceUpdateRequest, CollectionLabel } from '@trek/shared'
 import type { Category, TranslationFn } from '../../types'
 import MarkdownToolbar from '../Journey/MarkdownToolbar'
 import { NumericInput } from '../shared/NumericInput'
@@ -35,7 +38,7 @@ interface CollectionPlaceDetailProps {
   anchorRect?: { left: number; width: number } | null
   onClose: () => void
   onSetStatus: (status: CollectionStatus) => void
-  onSave: (patch: { name?: string; description?: string | null; links?: CollectionLink[]; category_id?: number | null; label_ids?: number[]; image_url?: string | null; lat?: number | null; lng?: number | null; address?: string | null }) => Promise<void>
+  onSave: (patch: CollectionPlaceUpdateRequest) => Promise<void>
   /** Upload a custom cover image (#1136); enables the cover change/remove controls. */
   onUploadImage?: (file: File) => Promise<void>
   onCopyToTrip: () => void
@@ -72,6 +75,8 @@ export default function CollectionPlaceDetail({
   place, canEdit, canDelete, categories, labels, anchorRect, onClose, onSetStatus, onSave, onUploadImage, onCopyToTrip, onRemove, onRate, t,
 }: CollectionPlaceDetailProps): React.ReactElement {
   const toast = useToast()
+  const personalMode = useSettingsStore(s => s.settings.personal_mode === true)
+  const metadata = usePlaceMetadata(place)
   const [editing, setEditing] = useState(false)
   const coverInputRef = useRef<HTMLInputElement>(null)
   const [imgBusy, setImgBusy] = useState(false)
@@ -95,6 +100,7 @@ export default function CollectionPlaceDetail({
   // Reset only when a DIFFERENT place is opened (keyed on id, not on every field).
   useEffect(() => {
     setEditing(false)
+    metadata.reset(place)
     setName(place.name)
     setCategoryId(place.category_id ?? null)
     setDescription(place.description ?? '')
@@ -149,7 +155,7 @@ export default function CollectionPlaceDetail({
 
   const setLink = (i: number, patch: Partial<CollectionLink>) => setLinks(links.map((l, idx) => (idx === i ? { ...l, ...patch } : l)))
   const toggleLabel = (id: number) => setLabelIds(labelIds.includes(id) ? labelIds.filter(x => x !== id) : [...labelIds, id])
-  const resetForm = () => { setEditing(false); setName(place.name); setCategoryId(place.category_id ?? null); setDescription(place.description ?? ''); setLinks(place.links ?? []); setLabelIds(place.label_ids ?? []); setAddress(place.address ?? ''); setLat(place.lat != null ? String(place.lat) : ''); setLng(place.lng != null ? String(place.lng) : '') }
+  const resetForm = () => { metadata.reset(place); setEditing(false); setName(place.name); setCategoryId(place.category_id ?? null); setDescription(place.description ?? ''); setLinks(place.links ?? []); setLabelIds(place.label_ids ?? []); setAddress(place.address ?? ''); setLat(place.lat != null ? String(place.lat) : ''); setLng(place.lng != null ? String(place.lng) : '') }
   const coordPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const text = e.clipboardData.getData('text').trim()
     const match = text.match(/^(-?\d+(?:\.\d*)?)(?:\s*[,;]\s*|\s+)(-?\d+(?:\.\d*)?)$/)
@@ -163,7 +169,7 @@ export default function CollectionPlaceDetail({
     const lngNum = lng.trim() ? Number(lng) : Number.NaN
     setSaving(true)
     try {
-      await onSave({ name: name.trim() || place.name, description: description.trim() || null, links: cleanLinks, category_id: categoryId, label_ids: labelIds, address: address.trim() || null, lat: Number.isFinite(latNum) ? latNum : null, lng: Number.isFinite(lngNum) ? lngNum : null })
+      await onSave({ ...(personalMode ? metadata.patch : {}), name: name.trim() || place.name, description: description.trim() || null, links: cleanLinks, category_id: categoryId, label_ids: labelIds, address: address.trim() || null, lat: Number.isFinite(latNum) ? latNum : null, lng: Number.isFinite(lngNum) ? lngNum : null })
       setEditing(false)
     } catch (err) {
       toast.error(getApiErrorMessage(err, t('common.error')))
@@ -262,6 +268,7 @@ export default function CollectionPlaceDetail({
 
         {editing ? (
           <div className="col-detail-edit">
+            {personalMode && <PlaceMetadata value={metadata.value} onChange={metadata.setValue} t={t} />}
             {/* Category */}
             <div className="col-detail-field">
               <div className="col-detail-label"><Tag size={12} /> {t('collections.category')}</div>
@@ -330,6 +337,7 @@ export default function CollectionPlaceDetail({
           </div>
         ) : (
           <>
+            {personalMode && <PlaceMetadata value={place} t={t} />}
             {place.description && (
               <div className="col-detail-md collab-note-md">
                 <Markdown remarkPlugins={[remarkGfm, remarkBreaks]} components={markdownLinkComponents}>{place.description}</Markdown>

@@ -1,9 +1,12 @@
+import PlaceMetadata from '../../../components/Collections/PlaceMetadata'
+import usePlaceMetadata from '../../../components/Collections/usePlaceMetadata'
+import { useSettingsStore } from '../../../store/settingsStore'
 import { useEffect, useRef, useState } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
 import { Camera, Check, Copy, ExternalLink, Loader2, MapPin, Pencil, Trash2, X } from 'lucide-react'
-import type { CollectionLabel, CollectionLink, CollectionPlace, CollectionStatus } from '@trek/shared'
+import type { CollectionLabel, CollectionLink, CollectionPlaceUpdateRequest, CollectionPlace, CollectionStatus } from '@trek/shared'
 import type { Category, TranslationFn } from '../../../types'
 import { mapsApi } from '../../../api/client'
 import { useToast } from '../../../components/shared/Toast'
@@ -36,7 +39,7 @@ interface MCollPlaceSheetProps {
   labels: CollectionLabel[]
   onClose: () => void
   onSetStatus: (status: CollectionStatus) => void
-  onSave: (patch: { name?: string; description?: string | null; links?: CollectionLink[]; category_id?: number | null; label_ids?: number[]; image_url?: string | null; address?: string | null }) => Promise<void>
+  onSave: (patch: CollectionPlaceUpdateRequest) => Promise<void>
   onUploadImage?: (file: File) => Promise<void>
   onCopyToTrip: () => void
   onRemove: () => void
@@ -55,6 +58,9 @@ export default function MCollPlaceSheet({
   place, canEdit, canDelete, categories, labels, onClose, onSetStatus, onSave, onUploadImage, onCopyToTrip, onRemove, onRate, t,
 }: MCollPlaceSheetProps) {
   const toast = useToast()
+  const personalMode = useSettingsStore(s => s.settings.personal_mode === true)
+  const metadata = usePlaceMetadata(place)
+  const resetMetadata = metadata.reset
   const imageInputRef = useRef<HTMLInputElement | null>(null)
   const [imgBusy, setImgBusy] = useState(false)
   // Hold the last place through the exit animation.
@@ -78,6 +84,7 @@ export default function MCollPlaceSheet({
     if (!held || seededId.current === held.id) return
     seededId.current = held.id
     setEditing(false)
+    resetMetadata(held)
     setName(held.name)
     setAddress(held.address ?? '')
     setCategoryId(held.category_id ?? null)
@@ -93,14 +100,14 @@ export default function MCollPlaceSheet({
       .then(res => { if (!cancelled && res?.photoUrl) setFetchedPhoto(res.photoUrl) })
       .catch(() => {})
     return () => { cancelled = true }
-  }, [held, heldId])
+  }, [held, heldId, resetMetadata])
 
   const save = async () => {
     if (!held) return
     const cleanLinks = links.map(l => ({ label: l.label?.trim() || undefined, url: normalizeLinkUrl(l.url) })).filter(l => l.url)
     setSaving(true)
     try {
-      await onSave({ name: name.trim() || held.name, address: address.trim() || null, description: description.trim() || null, links: cleanLinks, category_id: categoryId, label_ids: labelIds })
+      await onSave({ ...(personalMode ? metadata.patch : {}), name: name.trim() || held.name, address: address.trim() || null, description: description.trim() || null, links: cleanLinks, category_id: categoryId, label_ids: labelIds })
       setEditing(false)
     } catch (err) {
       toast.error(getApiErrorMessage(err, t('common.error')))
@@ -112,6 +119,7 @@ export default function MCollPlaceSheet({
   const cancelEdit = () => {
     if (!held) return
     setEditing(false)
+    resetMetadata(held)
     setName(held.name)
     setAddress(held.address ?? '')
     setCategoryId(held.category_id ?? null)
@@ -246,6 +254,7 @@ export default function MCollPlaceSheet({
 
             {editing ? (
               <>
+                {personalMode && <PlaceMetadata value={metadata.value} onChange={metadata.setValue} t={t} mobile />}
                 <Eyebrow className="mb-[6px] mt-4">{t('common.name').toUpperCase()}</Eyebrow>
                 <input value={name} onChange={e => setName(e.target.value)} className={INPUT_CLS} />
                 {/* Address (#1870): free text, same as the add sheet offers */}
@@ -292,6 +301,7 @@ export default function MCollPlaceSheet({
               </>
             ) : (
               <>
+                {personalMode && <PlaceMetadata value={held} t={t} mobile />}
                 {assignedLabels.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-[6px]">
                     {assignedLabels.map(l => {

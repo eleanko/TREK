@@ -1,6 +1,15 @@
 import type { TranslationStrings } from '../types';
 
 const collection: TranslationStrings = {
+  'collections.metadata.area': '地區',
+  'collections.metadata.favorite': '最愛',
+  'collections.metadata.priority': '優先順序',
+  'collections.metadata.opening_hours': '營業時間',
+  'collections.metadata.recommended_dishes': '推薦菜式',
+  'collections.metadata.priority.none': '無',
+  'collections.metadata.priority.low': '低',
+  'collections.metadata.priority.medium': '中',
+  'collections.metadata.priority.high': '高',
   'collections.saveNToList': '將 {count} 個儲存到清單',
   'collections.addedNToList': '已將 {count} 個儲存到 {name}',
   'collections.noOwnLists': '你還沒有清單',
